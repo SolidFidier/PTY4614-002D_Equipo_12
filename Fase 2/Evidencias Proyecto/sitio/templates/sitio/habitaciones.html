@@ -1,0 +1,23 @@
+{% extends "sitio/base.html" %}
+{% block title %}Habitaciones · {{ SITIO.nombre }}{% endblock %}
+{% block hero %}<h1 class="page-title">Habitaciones</h1>{% endblock %}
+{% block content %}
+<section class="section-olive">
+  <div class="container">
+    {% include "sitio/_horario.html" %}
+    {% for h in habitaciones %}
+    <div class="row align-items-center g-4 item-row">
+      <div class="col-md-6 text-center">
+        {% if h.imagen %}<img src="{{ h.imagen.url }}" alt="{{ h.nombre }}" class="img-fluid foto">{% endif %}
+      </div>
+      <div class="col-md-6 text-center">
+        <h2 class="h5">{{ h.nombre }}</h2>
+        <ul class="lista-hab">{% for c in h.lista %}<li>{{ c }}</li>{% endfor %}</ul>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center mt-5">Aún no hay habitaciones cargadas. Agrégalas desde el panel <a href="/admin/" class="text-white">/admin</a>.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

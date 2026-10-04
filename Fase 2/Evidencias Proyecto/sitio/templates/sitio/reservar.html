@@ -1,0 +1,27 @@
+{% extends "sitio/base.html" %}
+{% load static %}
+{% block title %}Reservar · {{ SITIO.nombre }}{% endblock %}
+{% block hero_class %}hero-full{% endblock %}
+{% block hero_img %}{% static 'img/reservar.jpg' %}{% endblock %}
+{% block hero %}
+<h1 class="page-title">Reservar</h1>
+<form method="post" class="reserva-form mx-auto">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3 align-items-end justify-content-center">
+    <div class="col-sm-4"><label for="{{ form.llegada.id_for_label }}" class="form-label fs-5">Llegada</label>{{ form.llegada }}</div>
+    <div class="col-sm-4"><label for="{{ form.salida.id_for_label }}" class="form-label fs-5">Salida</label>{{ form.salida }}</div>
+    <div class="col-sm-4"><button type="submit" class="btn btn-pirque btn-lg w-100">Reservar</button></div>
+  </div>
+
+  <h2 class="h4 mt-5 mb-3">Huespedes</h2>
+  <div class="row align-items-center g-3 justify-content-center mb-2">
+    <div class="col-7 col-sm-5 text-sm-end fs-5">Adultos (+18)</div>
+    <div class="col-5 col-sm-3">{{ form.adultos }}</div>
+  </div>
+  <div class="row align-items-center g-3 justify-content-center">
+    <div class="col-7 col-sm-5 text-sm-end fs-5">Niños (0-17 años)</div>
+    <div class="col-5 col-sm-3">{{ form.ninos }}</div>
+  </div>
+</form>
+{% endblock %}

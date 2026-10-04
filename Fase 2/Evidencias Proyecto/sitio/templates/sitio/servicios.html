@@ -1,0 +1,33 @@
+{% extends "sitio/base.html" %}
+{% load static %}
+{% block title %}Servicios · {{ SITIO.nombre }}{% endblock %}
+{% block hero %}<h1 class="page-title">Servicios</h1>{% endblock %}
+{% block content %}
+<section class="section-olive">
+  <div class="container">
+    {% include "sitio/_horario.html" %}
+
+    <div class="row align-items-center g-4 item-row">
+      <div class="col-md-5 text-center"><img src="{% static 'img/bano-luna.jpg' %}" alt="Baño de luna" class="img-fluid foto foto-vertical"></div>
+      <div class="col-md-7 text-center">
+        <h2 class="h4">Baños de luna</h2>
+        <p class="lead-serif">El baño de luna es un tratamiento estético corporal que consiste en decolorar el vello fino para que se vuelva dorado, además de exfoliar e hidratar profundamente la piel.</p>
+      </div>
+    </div>
+
+    <div class="row align-items-center g-4 item-row">
+      <div class="col-md-5 text-center"><img src="{% static 'img/enoturismo.jpg' %}" alt="Viñedos del Valle del Maipo" class="img-fluid foto foto-vertical"></div>
+      <div class="col-md-7 text-center">
+        <h2 class="h4">Enoturismo</h2>
+        <p class="lead-serif">Visita Viña Concha y Toro y otras bodegas del Valle del Maipo. Tours, catas y degustaciones a pasos del hospedaje.</p>
+      </div>
+    </div>
+
+    <div class="row text-center comidas mt-5">
+      <div class="col-4"><i class="bi bi-cup-hot"></i><div>desayuno</div></div>
+      <div class="col-4"><i class="bi bi-egg-fried"></i><div>almuerzo</div></div>
+      <div class="col-4"><i class="bi bi-moon-stars"></i><div>cena</div></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

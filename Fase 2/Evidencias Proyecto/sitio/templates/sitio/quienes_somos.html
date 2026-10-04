@@ -1,0 +1,15 @@
+{% extends "sitio/base.html" %}
+{% load static %}
+{% block title %}Quienes somos · {{ SITIO.nombre }}{% endblock %}
+{% block hero_class %}hero-full{% endblock %}
+{% block hero_img %}{% static 'img/quienes_somos.jpg' %}{% endblock %}
+{% block hero %}
+<h1 class="page-title">Quienes somos</h1>
+<div class="panel-texto mx-auto">
+  <p>Somos un Hospedaje Rural, con una atención personalizada, privada, en un ambiente familiar, donde cultivamos nuestra cultura patrimonial y respeto por la naturaleza. Dispuestos a atender un público multicultural, ya sea por turismo, diversión, trabajo o relajo, con vocación de servicio, cordialidad y responsabilidad.</p>
+  <h2>Nuestra Misión</h2>
+  <p>Entregar la mejor experiencia en servicios de hospedaje, haciendo que la estadía de nuestros clientes sea en un ambiente grato, familiar, privado, exclusivo, multicultural, ecológico donde las personas puedan relajarse y disfrutar de uno de los mejores lugares de Pirque.</p>
+  <h2>Nuestra Visión</h2>
+  <p>Posicionarnos entre los Hoteles de Pirque, y así ser reconocidos por nuestra propuesta innovadora tanto entre nuestros visitantes chilenos como extranjeros, transformándonos en un destino requerido y deseado por clientes para reunirse en una comunidad a fin de a sus intereses.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "sitio/base.html" %}
+{% block title %}Contacto · {{ SITIO.nombre }}{% endblock %}
+{% block hero %}<h1 class="page-title">Contacto</h1>{% endblock %}
+{% block content %}
+<section class="section-olive">
+  <div class="container">
+    <div class="row text-center g-4 contacto-iconos">
+      <div class="col-md-4"><a href="tel:{{ SITIO.telefono }}"><i class="bi bi-telephone-fill"></i><span>{{ SITIO.telefono }}</span></a></div>
+      <div class="col-md-4"><a href="mailto:{{ SITIO.email }}"><i class="bi bi-envelope-fill"></i><span>{{ SITIO.email }}</span></a></div>
+      <div class="col-md-4"><a href="https://instagram.com/{{ SITIO.instagram }}" target="_blank" rel="noopener"><i class="bi bi-instagram"></i><span>@{{ SITIO.instagram }}</span></a></div>
+    </div>
+
+    <h2 class="display-5 text-center my-5 serif">Contactanos</h2>
+    <form method="post" class="mx-auto" style="max-width:690px">
+      {% csrf_token %}
+      <div class="mb-3">{{ form.nombre }}{{ form.nombre.errors }}</div>
+      <div class="mb-3">{{ form.correo }}{{ form.correo.errors }}</div>
+      <div class="mb-4">{{ form.mensaje }}{{ form.mensaje.errors }}</div>
+      <div class="text-center"><button type="submit" class="btn btn-pirque btn-lg px-5">Enviar</button></div>
+    </form>
+  </div>
+</section>
+{% endblock %}
