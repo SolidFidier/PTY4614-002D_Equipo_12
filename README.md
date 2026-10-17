@@ -4,7 +4,6 @@ Repositorio del equipo n°12 de la asignatura Capstone 002D
 
 
 # Reservas HRP
-#Descripción
 Aplicación web con sistema automatizado de reservas y agendamiento para el Hospedaje Rural Pirque, ubicado en Parque Real 8 b, Pirque, Región Metropolitana, Chile.
 
 El proyecto busca resolver los problemas de gestión manual de reservas y un sitio web poco confiable, que generan pérdida de clientes potenciales, errores en reservas, falta de seguimiento y una imagen poco profesional.
