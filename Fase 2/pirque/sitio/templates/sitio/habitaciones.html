@@ -1,0 +1,107 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Rooms - {{ SITIO.nombre }}{% else %}Habitaciones - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}Our Rooms{% else %}Nuestras Habitaciones{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container">
+        <div class="row justify-content-center my-4">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card bg-dark bg-opacity-25 border border-light-subtle text-light shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-center font-serif mb-3 border-bottom border-secondary pb-2">
+                            🕒 {% if LANGUAGE_CODE == 'en' %}Business Hours{% else %}Horarios de Atención{% endif %}
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-borderless text-light align-middle mb-0">
+                                <tbody>
+                                    {% for dia, hora in horario %}
+                                    <tr class="border-bottom border-dark border-opacity-25">
+                                        <td class="fw-bold text-start">{{ dia }}</td>
+                                        <td class="text-end fw-light">
+                                            {% if "Cerrado" in hora %}
+                                                <span class="badge bg-danger bg-opacity-75">
+                                                    {% if LANGUAGE_CODE == 'en' %}Closed{% else %}{{ hora }}{% endif %}
+                                                </span>
+                                            {% else %}
+                                                {{ hora }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4 my-4">
+            {% for h in habitaciones %}
+            <div class="col">
+                <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm overflow-hidden">
+                    {% if h.imagen %}
+                        <img src="{{ h.imagen.url }}" alt="{{ h.nombre }}" class="card-img-top object-fit-contain bg-black bg-opacity-50" style="height: 280px; image-rendering: -webkit-optimize-contrast;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column p-4">
+                        
+                        <!-- TÍTULO DE LA HABITACIÓN SEGÚN IDIOMA -->
+                        <h3 class="card-title h4 font-serif text-warning mb-3">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                {% if "suite" in h.nombre|lower %}Suite Room{% else %}{{ h.nombre }}{% endif %}
+                            {% else %}
+                                {{ h.nombre }}
+                            {% endif %}
+                        </h3>
+                        
+                        <!-- LISTA DE CARACTERÍSTICAS TRADUCIDAS -->
+                        <ul class="list-unstyled flex-grow-1 mb-4">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>Double bed for 2 people.</span></li>
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>Extra guest bed available at an additional cost.</span></li>
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>Private bathroom.</span></li>
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>Air conditioning.</span></li>
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>On-site parking.</span></li>
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>Outdoor common areas. Patios and Gardens.</span></li>
+                                <li class="mb-2 d-flex align-items-center"><span class="me-2 text-warning">•</span><span>WiFi</span></li>
+                            {% else %}
+                                {% for c in h.lista %}
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <span class="me-2 text-warning">•</span>
+                                        <span>{{ c }}</span>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+
+                        <a href="{% url 'reservar' %}" class="btn btn-outline-light w-100 rounded-pill py-2 font-serif">
+                            {% if LANGUAGE_CODE == 'en' %}Book this room{% else %}Reservar esta habitación{% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center my-5">
+                <p class="lead">
+                    {% if LANGUAGE_CODE == 'en' %}No rooms uploaded yet.{% else %}Aún no hay habitaciones cargadas.{% endif %}
+                </p>
+                <small>
+                    {% if LANGUAGE_CODE == 'en' %}Add them from the admin panel{% else %}Agrégalas desde el panel{% endif %} 
+                    <a href="/admin/" class="text-warning">/admin/</a>.
+                </small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

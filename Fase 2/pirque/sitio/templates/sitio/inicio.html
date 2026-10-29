@@ -1,0 +1,41 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Home - {{ SITIO.nombre }}{% else %}Inicio - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero_class %}hero-lg{% endblock %}
+{% block hero_img %}{% static 'img/inicio.jpg' %}{% endblock %}
+
+{% block hero %}
+<div class="text-center py-4">
+    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold text-uppercase mb-3 tracking-wide">
+        🌿 {% if LANGUAGE_CODE == 'en' %}Rural Lodging in Pirque{% else %}Hospedaje Rural en Pirque{% endif %}
+    </span>
+    
+    <h1 class="hero-title my-2">
+        <span class="d-block fs-1 font-serif fw-light">
+            {% if LANGUAGE_CODE == 'en' %}Disconnect in nature{% else %}Desconéctate en la naturaleza{% endif %}
+        </span>
+        <strong class="display-3 fw-bold font-serif text-warning">Pirque</strong>
+    </h1>
+
+    <p class="lead text-light opacity-75 max-w-600 mx-auto mb-4">
+        {% if LANGUAGE_CODE == 'en' %}
+            Enjoy a unique experience surrounded by vegetation, local gastronomy, and guaranteed rest steps away from the Maipo Valley.
+        {% else %}
+            Disfruta de una experiencia única rodeada de vegetación, gastronomía local y descanso garantizado a pasos del Valle del Maipo.
+        {% endif %}
+    </p>
+
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'reservar' %}" class="btn btn-warning btn-lg px-4 py-3 rounded-pill font-serif fw-bold shadow">
+            📅 {% if LANGUAGE_CODE == 'en' %}Book now{% else %}Reservar ahora{% endif %}
+        </a>
+        <a href="{% url 'servicios' %}" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill font-serif">
+            ✨ {% if LANGUAGE_CODE == 'en' %}See Experiences{% else %}Ver Experiencias{% endif %}
+        </a>
+    </div>
+</div>
+{% endblock %}

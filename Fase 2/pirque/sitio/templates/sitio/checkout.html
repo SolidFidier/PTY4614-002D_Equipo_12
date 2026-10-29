@@ -1,0 +1,154 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Checkout - {{ SITIO.nombre }}{% else %}Checkout - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}Reservation Request{% else %}Solicitud de Reserva{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container text-light">
+        <div class="mb-4">
+            <a href="{% url 'reservar' %}" class="btn btn-outline-light rounded-pill px-4">
+                ← {% if LANGUAGE_CODE == 'en' %}Back to calendar{% else %}Volver al calendario{% endif %}
+            </a>
+        </div>
+
+        <div class="row g-5">
+
+            <!-- Columna Izquierda: Pasos de Pago -->
+            <div class="col-lg-7">
+                
+                <!-- 1. Datos del Huésped -->
+                <div class="card bg-dark bg-opacity-25 border border-light-subtle rounded-4 p-4 mb-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-warning mb-1 font-serif">
+                                1. {% if LANGUAGE_CODE == 'en' %}Guest Details{% else %}Datos del Huésped{% endif %}
+                            </h6>
+                            <p class="mb-0 fw-bold">{{ reserva.nombre }}</p>
+                            <small class="text-muted">
+                                {% if LANGUAGE_CODE == 'en' %}Contact{% else %}Contacto{% endif %}: {{ reserva.contacto }}
+                            </small>
+                        </div>
+                        <span class="badge bg-success px-3 py-2">
+                            {% if LANGUAGE_CODE == 'en' %}Verified{% else %}Verificado{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 2. Método de Pago -->
+                <div class="card bg-dark bg-opacity-25 border border-light-subtle rounded-4 p-4 mb-3 shadow-sm">
+                    <h5 class="font-serif text-warning mb-3">
+                        2. {% if LANGUAGE_CODE == 'en' %}Payment Method{% else %}Método de Pago{% endif %}
+                    </h5>
+                    <p class="small text-light opacity-75">
+                        {% if LANGUAGE_CODE == 'en' %}
+                            Make a secure payment via Webpay Plus (Debit and Credit cards in CLP).
+                        {% else %}
+                            Realiza el pago de forma segura a través de Webpay Plus (Tarjetas de Débito y Crédito en CLP).
+                        {% endif %}
+                    </p>
+                    
+                    <form action="{% url 'simular_pago' reserva.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg w-100 rounded-pill font-serif fw-bold shadow" style="background-color: #e51d54; border: none;">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                Pay ${{ total_clp }} CLP (Simulate Successful Payment)
+                            {% else %}
+                                Pagar ${{ total_clp }} CLP (Simular Pago Exitoso)
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 3. Confirmación Instantánea -->
+                <div class="card bg-dark bg-opacity-25 border border-light-subtle rounded-4 p-4 text-light opacity-75 shadow-sm">
+                    <h6 class="font-serif text-warning mb-1">
+                        3. {% if LANGUAGE_CODE == 'en' %}Instant Confirmation{% else %}Confirmación Instantánea{% endif %}
+                    </h6>
+                    <small class="small">
+                        {% if LANGUAGE_CODE == 'en' %}
+                            Upon completing the payment, the cabin will be automatically blocked in the system for your selected dates.
+                        {% else %}
+                            Al completar el pago, la cabaña quedará bloqueada en el sistema para tus fechas de forma automática.
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Resumen de la Reserva -->
+            <div class="col-lg-5">
+                <div class="card bg-dark text-light border border-light-subtle rounded-4 p-4 shadow-lg">
+                    <div class="d-flex gap-3 align-items-center border-bottom border-secondary pb-3 mb-3">
+                        <img src="{% static 'img/cabana.jpg' %}" class="rounded-3 shadow-sm" style="width: 85px; height: 85px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/85'">
+                        <div>
+                            <h6 class="font-serif fw-bold mb-1 text-warning">Hospedaje Rural Pirque</h6>
+                            <small class="text-muted">
+                                {% if LANGUAGE_CODE == 'en' %}Full Cabin{% else %}Cabaña completa{% endif %}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="border-bottom border-secondary pb-3 mb-3">
+                        <div class="mb-2">
+                            <strong class="text-warning">
+                                {% if LANGUAGE_CODE == 'en' %}Stay dates{% else %}Fechas de estancia{% endif %}:
+                            </strong><br>
+                            <span class="small">
+                                {% if LANGUAGE_CODE == 'en' %}
+                                    {{ reserva.llegada }} to {{ reserva.salida }}
+                                {% else %}
+                                    {{ reserva.llegada }} al {{ reserva.salida }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <strong class="text-warning">
+                                {% if LANGUAGE_CODE == 'en' %}Guests{% else %}Huéspedes{% endif %}:
+                            </strong><br>
+                            <span class="small">
+                                {% if LANGUAGE_CODE == 'en' %}
+                                    {{ reserva.adultos }} adult(s), {{ reserva.ninos }} child(ren)
+                                {% else %}
+                                    {{ reserva.adultos }} adulto(s), {{ reserva.ninos }} niño(s)
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <h6 class="font-serif fw-bold mb-3 text-warning">
+                        {% if LANGUAGE_CODE == 'en' %}Price breakdown{% else %}Detalle del precio{% endif %}
+                    </h6>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>
+                            {% if LANGUAGE_CODE == 'en' %}
+                                {{ noches }} night(s) x ${{ precio_noche }} CLP
+                            {% else %}
+                                {{ noches }} noche(s) x ${{ precio_noche }} CLP
+                            {% endif %}
+                        </span>
+                        <span>${{ total_clp }} CLP</span>
+                    </div>
+
+                    <hr class="border-secondary">
+
+                    <div class="d-flex justify-content-between fw-bold fs-5 text-warning">
+                        <span>
+                            {% if LANGUAGE_CODE == 'en' %}Total amount{% else %}Total a pagar{% endif %}
+                        </span>
+                        <span>${{ total_clp }} CLP</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

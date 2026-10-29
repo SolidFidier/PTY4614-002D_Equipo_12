@@ -1,0 +1,82 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}About Us - {{ SITIO.nombre }}{% else %}Quiénes Somos - {{ SITIO.nombre }}{% endif %}{% endblock %}
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}About Us{% else %}Quiénes Somos{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container">
+        
+        <div class="card bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+                <p class="lead mb-0">
+                    {% if LANGUAGE_CODE == 'en' %}
+                        We are a Rural Lodging offering personalized, private attention in a family atmosphere. We cultivate our cultural heritage and respect for nature, ready to serve a multicultural audience with a vocation for service, warmth, and responsibility.
+                    {% else %}
+                        Somos un Hospedaje Rural con una atención personalizada, privada y en un ambiente familiar. Cultivamos nuestra cultura patrimonial y el respeto por la naturaleza, dispuestos a atender a un público multicultural con vocación de servicio, cordialidad y responsabilidad.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+            <div class="col">
+                <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h4 font-serif text-warning mb-3">
+                            🌿 {% if LANGUAGE_CODE == 'en' %}Our Mission{% else %}Nuestra Misión{% endif %}
+                        </h3>
+                        <p class="card-text">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                To deliver the best experience in lodging services, making our guests' stay pleasant, family-friendly, private, exclusive, multicultural, and ecological, where people can relax and enjoy one of the best places in Pirque.
+                            {% else %}
+                                Entregar la mejor experiencia en servicios de hospedaje, haciendo que la estadía de nuestros clientes sea en un ambiente grato, familiar, privado, exclusivo, multicultural y ecológico donde las personas puedan relajarse y disfrutar de uno de los mejores lugares de Pirque.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h4 font-serif text-warning mb-3">
+                            👁️ {% if LANGUAGE_CODE == 'en' %}Our Vision{% else %}Nuestra Visión{% endif %}
+                        </h3>
+                        <p class="card-text">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                To position ourselves among the hotels in Pirque and be recognized for our innovative approach by both Chilean and international visitors, becoming a sought-after destination for guests to gather in a community aligned with their interests.
+                            {% else %}
+                                Posicionarnos entre los Hoteles de Pirque, y así ser reconocidos por nuestra propuesta innovadora tanto entre nuestros visitantes chilenos como extranjeros, transformándonos en un destino requerido y deseado por clientes para reunirse en una comunidad a fin de sus intereses.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="h4 font-serif text-warning mb-3">
+                    🏛️ {% if LANGUAGE_CODE == 'en' %}History & Local Identity{% else %}Historia e Identidad Local{% endif %}
+                </h3>
+                <p class="card-text">
+                    {% if LANGUAGE_CODE == 'en' %}
+                        Inspired by the rich cultural heritage of the Maipo Valley and the ancient <strong>Picunche</strong> inhabitants, our lodging preserves the value of Pirque's natural and historical heritage, offering an environment where the peace of nature connects with local traditions.
+                    {% else %}
+                        Inspirados en la rica herencia cultural del Valle del Maipo y los antiguos habitantes <strong>Picunches</strong>, nuestro hospedaje rescata el valor del patrimonio natural e histórico de Pirque, ofreciendo un entorno donde la paz de la naturaleza se conecta con las tradiciones locales.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

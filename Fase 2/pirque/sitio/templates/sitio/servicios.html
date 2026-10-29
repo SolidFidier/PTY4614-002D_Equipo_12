@@ -1,0 +1,196 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Services - {{ SITIO.nombre }}{% else %}Servicios - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}Services and Experiences{% else %}Servicios y Experiencias{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container">
+        
+        <!-- Tabla Horarios de Atención -->
+        <div class="row justify-content-center my-4">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card bg-dark bg-opacity-25 border border-light-subtle text-light shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-center font-serif mb-3 border-bottom border-secondary pb-2">
+                            🕒 {% if LANGUAGE_CODE == 'en' %}Business Hours{% else %}Horarios de Atención{% endif %}
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-borderless text-light align-middle mb-0">
+                                <tbody>
+                                    {% for dia, hora in horario %}
+                                    <tr class="border-bottom border-dark border-opacity-25">
+                                        <td class="fw-bold text-start">{{ dia }}</td>
+                                        <td class="text-end fw-light">
+                                            {% if "Cerrado" in hora %}
+                                                <span class="badge bg-danger bg-opacity-75">
+                                                    {% if LANGUAGE_CODE == 'en' %}Closed{% else %}{{ hora }}{% endif %}
+                                                </span>
+                                            {% else %}
+                                                {{ hora }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila de Servicios Básicos -->
+        <div class="row g-3 my-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">📶</span>
+                    <h6 class="mt-2 mb-1 fw-bold">WiFi</h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}Throughout the property{% else %}En todo el recinto{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">🚫📺</span>
+                    <h6 class="mt-2 mb-1 fw-bold">
+                        {% if LANGUAGE_CODE == 'en' %}No TV{% else %}Sin TV{% endif %}
+                    </h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}Total digital detox{% else %}Desconexión total{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">🚗</span>
+                    <h6 class="mt-2 mb-1 fw-bold">
+                        {% if LANGUAGE_CODE == 'en' %}Parking{% else %}Estacionamiento{% endif %}
+                    </h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}For 3 vehicles{% else %}Para 3 vehículos{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">🍽️</span>
+                    <h6 class="mt-2 mb-1 fw-bold">
+                        {% if LANGUAGE_CODE == 'en' %}Full Board{% else %}Pensión Completa{% endif %}
+                    </h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}All meals included{% else %}Comidas incluidas{% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Título Experiencias -->
+        <h2 class="text-center my-5 text-light font-serif">
+            {% if LANGUAGE_CODE == 'en' %}Our Experiences{% else %}Nuestras Experiencias{% endif %}
+        </h2>
+
+        <!-- Tarjetas de Experiencias -->
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            
+            <div class="col">
+                <div class="card h-100 bg-dark bg-opacity-50 text-light border-secondary shadow">
+                    <img src="{% static 'img/bano-luna.jpg' %}" class="card-img-top object-fit-contain bg-black bg-opacity-50" alt="Baño de luna" style="height: 220px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning font-serif">
+                            {% if LANGUAGE_CODE == 'en' %}Moon Baths{% else %}Baños de Luna{% endif %}
+                        </h5>
+                        <p class="card-text small">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                Body aesthetic treatment to lighten fine hair to a golden tone, along with outdoor exfoliation and deep skin hydration.
+                            {% else %}
+                                Tratamiento estético corporal para decolorar el vello fino a tono dorado, sumado a una exfoliación e hidratación profunda de la piel al aire libre.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 bg-dark bg-opacity-50 text-light border-secondary shadow">
+                    <img src="{% static 'img/bano-luna.jpg' %}" class="card-img-top object-fit-contain bg-black bg-opacity-50" alt="Piedras calientes" style="height: 220px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning font-serif">
+                            {% if LANGUAGE_CODE == 'en' %}Hot Stones Massage{% else %}Piedras Calientes{% endif %}
+                        </h5>
+                        <p class="card-text small">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                Therapeutic massage with warm volcanic stones, designed to relieve muscle tension and restore natural balance.
+                            {% else %}
+                                Masaje terapéutico con piedras volcánicas templadas, diseñado para aliviar la tensión muscular y restaurar el equilibrio natural.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 bg-dark bg-opacity-50 text-light border-secondary shadow">
+                    <img src="{% static 'img/enoturismo.jpg' %}" class="card-img-top object-fit-contain bg-black bg-opacity-50" alt="Enoturismo" style="height: 280px; image-rendering: -webkit-optimize-contrast;">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning font-serif">
+                            {% if LANGUAGE_CODE == 'en' %}Wine Tourism{% else %}Enoturismo{% endif %}
+                        </h5>
+                        <p class="card-text small">
+                            {% if LANGUAGE_CODE == 'en' %}
+                                Tours and tastings in traditional Maipo Valley wineries (such as Viña Concha y Toro) located steps from the lodging.
+                            {% else %}
+                                Recorridos y degustaciones en las tradicionales viñas del Valle del Maipo (como Viña Concha y Toro) ubicadas a pasos del hospedaje.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bloque de Pensión Completa -->
+        <div class="p-4 my-5 rounded bg-dark bg-opacity-50 border border-secondary text-light">
+            <h4 class="text-center mb-4 font-serif">
+                {% if LANGUAGE_CODE == 'en' %}Full Board Included{% else %}Pensión Completa Incluida{% endif %}
+            </h4>
+            <div class="row text-center">
+                <div class="col-3">
+                    <i class="bi bi-cup-hot fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Breakfast{% else %}Desayuno{% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <i class="bi bi-egg-fried fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Lunch{% else %}Almuerzo{% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <i class="bi bi-cup-straw fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Afternoon Tea{% else %}Once{% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <i class="bi bi-moon-stars fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Dinner{% else %}Cena{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Book Stay - {{ SITIO.nombre }}{% else %}Reservar - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}Book Your Stay{% else %}Reserva tu Estadía{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{% if LANGUAGE_CODE == 'es' %}
+<script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+{% endif %}
+
+<style>
+    .custom-card {
+        background-color: rgba(20, 30, 20, 0.75) !important;
+        backdrop-filter: blur(8px);
+    }
+    .form-control-custom {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #ffffff !important;
+    }
+    .form-control-custom:focus {
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    }
+    .flatpickr-calendar {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+</style>
+
+<section class="section-olive py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                <div class="card custom-card text-light border border-light-subtle shadow-lg p-4 rounded-4">
+                    
+                    <h3 class="h4 font-serif text-center text-warning mb-4">
+                        📅 {% if LANGUAGE_CODE == 'en' %}Reservation Details{% else %}Datos de la Reserva{% endif %}
+                    </h3>
+
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label for="rango_fechas" class="form-label fw-bold text-light">
+                                {% if LANGUAGE_CODE == 'en' %}Select your dates (Check-in and Check-out){% else %}Selecciona tus fechas (Llegada y Salida){% endif %}
+                            </label>
+                            <input type="text" id="rango_fechas" class="form-control form-control-lg form-control-custom" 
+                                   placeholder="{% if LANGUAGE_CODE == 'en' %}Click to select your dates{% else %}Haz clic para seleccionar tus fechas{% endif %}" required readonly>
+                        </div>
+
+                        <div style="display: none;">
+                            {{ form.llegada }}
+                            {{ form.salida }}
+                        </div>
+
+                        {% if form.nacionalidad %}
+                        <div class="mb-4">
+                            <label for="{{ form.nacionalidad.id_for_label }}" class="form-label fw-bold text-light">
+                                {% if LANGUAGE_CODE == 'en' %}Nationality{% else %}Nacionalidad{% endif %}
+                            </label>
+                            {{ form.nacionalidad }}
+                        </div>
+                        {% endif %}
+
+                        <div class="border-top border-secondary-subtle pt-3 mt-3">
+                            <h5 class="font-serif mb-3 text-warning">
+                                👥 {% if LANGUAGE_CODE == 'en' %}Guests{% else %}Huéspedes{% endif %}
+                            </h5>
+                            
+                            <div class="row g-3 align-items-center mb-3">
+                                <div class="col-6 col-md-4">
+                                    <label for="{{ form.adultos.id_for_label }}" class="col-form-label text-light">
+                                        {% if LANGUAGE_CODE == 'en' %}Adults (+18):{% else %}Adultos (+18):{% endif %}
+                                    </label>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <input type="number" name="{{ form.adultos.name }}" id="{{ form.adultos.id_for_label }}" class="form-control form-control-custom text-center fw-bold" value="{{ form.adultos.value|default:1 }}" min="1" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 align-items-center mb-4">
+                                <div class="col-6 col-md-4">
+                                    <label for="{{ form.ninos.id_for_label }}" class="col-form-label text-light">
+                                        {% if LANGUAGE_CODE == 'en' %}Children (0-17 years):{% else %}Niños (0-17 años):{% endif %}
+                                    </label>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <input type="number" name="{{ form.ninos.name }}" id="{{ form.ninos.id_for_label }}" class="form-control form-control-custom text-center fw-bold" value="{{ form.ninos.value|default:0 }}" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning border-warning text-dark fw-medium small mb-4 shadow-sm">
+                            ℹ️ <strong>{% if LANGUAGE_CODE == 'en' %}Note:{% else %}Nota:{% endif %}</strong> 
+                            {% if LANGUAGE_CODE == 'en' %}
+                                Your reservation request will remain in <em>pending</em> status until availability is confirmed. We will contact you via WhatsApp or email.
+                            {% else %}
+                                Tu solicitud de reserva quedará en estado <em>pendiente</em> hasta que confirmemos la disponibilidad. Te contactaremos vía WhatsApp o correo electrónico.
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg px-5 rounded-pill font-serif fw-bold shadow">
+                                {% if LANGUAGE_CODE == 'en' %}Confirm Reservation{% else %}Confirmar Reserva{% endif %}
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const fechasOcupadas = JSON.parse('{{ fechas_bloqueadas_json|default:"[]"|escapejs }}');
+        const langCode = "{{ LANGUAGE_CODE }}";
+
+        flatpickr("#rango_fechas", {
+            mode: "range",
+            locale: langCode === 'es' ? 'es' : 'default',
+            minDate: "today",
+            disable: fechasOcupadas,
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    const fechaInicioInput = document.querySelector("#id_llegada") || document.querySelector("input[name='llegada']");
+                    const fechaFinInput = document.querySelector("#id_salida") || document.querySelector("input[name='salida']");
+
+                    if (fechaInicioInput && fechaFinInput) {
+                        fechaInicioInput.value = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                        fechaFinInput.value = flatpickr.formatDate(selectedDates[1], "Y-m-d");
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

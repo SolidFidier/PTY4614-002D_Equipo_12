@@ -1,0 +1,106 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Contact Us - {{ SITIO.nombre }}{% else %}Contacto - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}Contact Us{% else %}Contacto{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container">
+        
+        <div class="row g-3 mb-5 text-center">
+            <div class="col-12 col-md-4">
+                <a href="tel:{{ SITIO.telefono }}" class="text-decoration-none">
+                    <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-3 hover-card">
+                        <i class="bi bi-telephone-fill fs-1 text-warning mb-2"></i>
+                        <h6 class="fw-bold mb-1">
+                            {% if LANGUAGE_CODE == 'en' %}Phone{% else %}Teléfono{% endif %}
+                        </h6>
+                        <span class="small text-light-50">{{ SITIO.telefono }}</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <a href="mailto:{{ SITIO.email }}" class="text-decoration-none">
+                    <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-3 hover-card">
+                        <i class="bi bi-envelope-fill fs-1 text-warning mb-2"></i>
+                        <h6 class="fw-bold mb-1">
+                            {% if LANGUAGE_CODE == 'en' %}Email{% else %}Correo Electrónico{% endif %}
+                        </h6>
+                        <span class="small text-light-50">{{ SITIO.email }}</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <a href="https://instagram.com/{{ SITIO.instagram }}" target="_blank" rel="noopener" class="text-decoration-none">
+                    <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-3 hover-card">
+                        <i class="bi bi-instagram fs-1 text-warning mb-2"></i>
+                        <h6 class="fw-bold mb-1">Instagram</h6>
+                        <span class="small text-light-50">@{{ SITIO.instagram }}</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                <div class="card bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-4 p-md-5">
+                    <h2 class="h3 text-center font-serif text-warning mb-4">
+                        ✉️ {% if LANGUAGE_CODE == 'en' %}Send us a message{% else %}Envíanos un mensaje{% endif %}
+                    </h2>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                {% if LANGUAGE_CODE == 'en' %}Full Name{% else %}Nombre y Apellido{% endif %}
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small mt-1">{{ form.nombre.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                {% if LANGUAGE_CODE == 'en' %}Email Address{% else %}Correo Electrónico{% endif %}
+                            </label>
+                            {{ form.correo }}
+                            {% if form.correo.errors %}
+                                <div class="text-danger small mt-1">{{ form.correo.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                {% if LANGUAGE_CODE == 'en' %}Message{% else %}Mensaje{% endif %}
+                            </label>
+                            {{ form.mensaje }}
+                            {% if form.mensaje.errors %}
+                                <div class="text-danger small mt-1">{{ form.mensaje.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-warning btn-lg px-5 rounded-pill font-serif fw-bold">
+                                {% if LANGUAGE_CODE == 'en' %}Send Message{% else %}Enviar Mensaje{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

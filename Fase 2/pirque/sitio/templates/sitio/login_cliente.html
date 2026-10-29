@@ -1,0 +1,50 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Guest Identification - {{ SITIO.nombre }}{% else %}Identificación - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container text-light" style="max-width: 500px;">
+        <div class="card bg-dark bg-opacity-25 border border-light-subtle rounded-4 p-4 shadow-lg">
+            <h3 class="font-serif text-center text-warning mb-3">
+                🔑 {% if LANGUAGE_CODE == 'en' %}Guest Identification{% else %}Identificación del Huésped{% endif %}
+            </h3>
+            <p class="small text-center opacity-75 mb-4">
+                {% if LANGUAGE_CODE == 'en' %}
+                    Enter your details to verify availability and continue with your reservation.
+                {% else %}
+                    Ingresa tus datos para verificar disponibilidad y continuar con la reserva.
+                {% endif %}
+            </p>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger small py-2">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label text-light fw-bold">{{ field.label }}</label>
+                        {{ field }}
+                        
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1 fw-bold">
+                                ⚠️ {{ field.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-warning w-100 rounded-pill font-serif fw-bold py-2 shadow mt-3">
+                    {% if LANGUAGE_CODE == 'en' %}Continue to Reservation →{% else %}Continuar a la Reserva →{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

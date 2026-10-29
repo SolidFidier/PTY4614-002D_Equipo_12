@@ -1,0 +1,103 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}How to Get Here - {{ SITIO.nombre }}{% else %}Cómo llegar - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}How to Get Here{% else %}Cómo llegar{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container">
+        
+        <div class="row g-4 align-items-center">
+            
+            <!-- Mapa e iframe -->
+            <div class="col-12 col-lg-7">
+                <div class="card bg-dark bg-opacity-25 border border-light-subtle shadow-sm overflow-hidden p-2">
+                    <div class="ratio ratio-16x9 rounded overflow-hidden">
+                        <iframe src="https://www.google.com/maps?q=Parque+real+8+b,+Pirque,+Chile&output=embed" 
+                                loading="lazy" 
+                                allowfullscreen 
+                                referrerpolicy="no-referrer-when-downgrade" 
+                                title="Mapa de {{ SITIO.nombre }}">
+                        </iframe>
+                    </div>
+                    <div class="card-body text-center p-3 text-light">
+                        <p class="mb-0 fw-bold">📍 {{ SITIO.direccion }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servicios Cercanos -->
+            <div class="col-12 col-lg-5">
+                <div class="card bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h4 font-serif text-warning mb-4">
+                            📍 {% if LANGUAGE_CODE == 'en' %}Nearby Services in Pirque{% else %}Servicios Cercanos en Pirque{% endif %}
+                        </h3>
+                        
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-3 d-flex align-items-start">
+                                <span class="fs-4 me-3">🏦</span>
+                                <div>
+                                    <strong class="d-block text-warning">
+                                        {% if LANGUAGE_CODE == 'en' %}Banks & ATMs{% else %}Bancos y Cajeros{% endif %}
+                                    </strong>
+                                    <small class="text-light-50">
+                                        {% if LANGUAGE_CODE == 'en' %}
+                                            Located in downtown Pirque (approx. 10 minutes away).
+                                        {% else %}
+                                            Ubicados en el centro de Pirque (a aprox. 10 minutos).
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </li>
+                            
+                            <li class="mb-3 d-flex align-items-start">
+                                <span class="fs-4 me-3">🛒</span>
+                                <div>
+                                    <strong class="d-block text-warning">
+                                        {% if LANGUAGE_CODE == 'en' %}Supermarkets & Stores{% else %}Supermercados y Comercio{% endif %}
+                                    </strong>
+                                    <small class="text-light-50">
+                                        {% if LANGUAGE_CODE == 'en' %}
+                                            Minimarkets and local shops just 5 minutes away.
+                                        {% else %}
+                                            Minimarkets y locales comerciales locales a solo 5 minutos.
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </li>
+
+                            <li class="d-flex align-items-start">
+                                <span class="fs-4 me-3">🏥</span>
+                                <div>
+                                    <strong class="d-block text-warning">
+                                        {% if LANGUAGE_CODE == 'en' %}Health Center (CESFAM){% else %}Centro de Salud (CESFAM){% endif %}
+                                    </strong>
+                                    <small class="text-light-50">
+                                        {% if LANGUAGE_CODE == 'en' %}
+                                            CESFAM Dr. José Manuel Balmaceda just a few minutes away.
+                                        {% else %}
+                                            CESFAM Dr. José Manuel Balmaceda a pocos minutos de distancia.
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+{% endblock %}
