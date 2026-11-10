@@ -13,7 +13,7 @@ Este proyecto va dirigo a los administradores del hospedaje y a turistas interes
 # Tecnologías a utilizar
 Lenguajes*: Python, HTML, JavaScript, y CSS
 
-Frameworks: Django y Bootstrap
+Frameworks: Django 6 y Bootstrap 5
 
 Base de datos: Postgresql
 
@@ -35,12 +35,13 @@ Sitio: http://127.0.0.1:8000/  -  Panel: http://127.0.0.1:8000/admin/
 
 # Integrantes y roles
 
-José Varela | Representante del cliente/ Tracker
+José Varela | Representante del cliente/ Tracker | jos.varela@duocuc.cl
 
-Ezequel Lorca | Programador
+Ezequel Lorca | Programador | ez.lorca@duocuc.cl
 
-Martín Ponce | Programador
+Martín Ponce | Programador | mart.ponceb@duocuc.cl
 
+Sección: PTY4614-002 · Docente guía: Mallén González — elia.gonzalezg@profesor.duoc.cl (contacto alternativo: mallen@mallen.cl)
 
 # Metodología
 La metodología a utilizar es una híbrida, Extreme Programming como metodo de desarrollo y enfoque mientras se realiza las entregas de manera Incremental.
