@@ -1,0 +1,20 @@
+{% extends "panel/base.html" %}
+{% block content %}
+<h2 class="h5 mb-3"><i class="bi bi-people me-2"></i>Gestión de clientes</h2>
+<form class="mb-3"><input name="q" value="{{ q }}" class="form-control" style="max-width:420px" placeholder="Buscar por nombre, RUT/DNI o correo"></form>
+<div class="tarjeta"><div class="table-responsive"><table class="table tabla"><thead><tr><th>Nombre</th><th>RUT/DNI</th><th>Nacionalidad</th><th>Correo</th><th>Teléfono</th><th>Acciones</th></tr></thead><tbody>
+{% for c in page %}<tr><td>{{ c.nombre }} {{ c.apellido }}</td><td>{{ c.id }}</td><td>{{ c.nacionalidad }}</td><td>{{ c.correo }}</td><td>{{ c.telefono }}</td>
+<td><button class="btn btn-sm btn-light" data-edit="#mdCliente" data-url="{% url 'panel:cliente_editar' c.id %}" data-documento="{{ c.id }}" data-nombre="{{ c.nombre }}" data-apellido="{{ c.apellido }}" data-correo="{{ c.correo }}" data-telefono="{{ c.telefono }}" data-nacionalidad="{{ c.nacionalidad }}" aria-label="Editar"><i class="bi bi-pencil"></i></button>
+<button class="btn btn-sm btn-light text-danger" data-delete="{% url 'panel:cliente_eliminar' c.id %}" data-msg="¿Eliminar a {{ c.nombre }} {{ c.apellido }}?" aria-label="Eliminar"><i class="bi bi-trash"></i></button></td></tr>
+{% empty %}<tr><td colspan="6" class="text-center text-muted">No hay clientes.</td></tr>{% endfor %}</tbody></table></div>{% include "panel/_pag.html" %}</div>
+<div class="modal fade" id="mdCliente" tabindex="-1"><div class="modal-dialog"><form class="modal-content" data-ajax>{% csrf_token %}
+ <div class="modal-header"><h5 class="modal-title">Modificar cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+ <div class="modal-body"><div class="alert alert-danger form-error d-none"></div><div class="row g-3">
+  <div class="col-12"><label class="form-label">RUT/DNI (sin puntos ni guion)</label><input name="documento" class="form-control" required></div>
+  <div class="col-6"><label class="form-label">Nombre</label><input name="nombre" class="form-control" required></div>
+  <div class="col-6"><label class="form-label">Apellido</label><input name="apellido" class="form-control" required></div>
+  <div class="col-12"><label class="form-label">Nacionalidad</label><select name="nacionalidad" class="form-select"><option>Chileno</option><option>Extranjero</option></select></div>
+  <div class="col-6"><label class="form-label">Correo</label><input type="email" name="correo" class="form-control" required></div>
+  <div class="col-6"><label class="form-label">Teléfono</label><input name="telefono" class="form-control" required></div></div></div>
+ <div class="modal-footer"><button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-pirque">Guardar cambios</button></div></form></div></div>
+{% endblock %}

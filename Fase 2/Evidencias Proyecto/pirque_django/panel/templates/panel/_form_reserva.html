@@ -1,0 +1,23 @@
+<div class="alert alert-danger form-error d-none"></div>
+<div class="row g-3">
+  <div class="col-md-6"><label class="form-label">Nombre</label><input name="nombre" class="form-control" required></div>
+  <div class="col-md-6"><label class="form-label">Apellido</label><input name="apellido" class="form-control" required></div>
+  <div class="col-md-6"><label class="form-label">RUT o pasaporte (sin puntos ni guion)</label><input name="documento" class="form-control" required></div>
+  <div class="col-md-6"><label class="form-label">Nacionalidad</label><select name="nacionalidad" class="form-select"><option>Chileno</option><option>Extranjero</option></select></div>
+  <div class="col-md-6"><label class="form-label">Teléfono</label><input name="telefono" class="form-control" required></div>
+  <div class="col-md-6"><label class="form-label">Correo</label><input type="email" name="correo" class="form-control" required></div>
+  <div class="col-12">
+    <label class="form-label">Calendario <small class="text-muted fw-normal" style="color:inherit">(en rojo, las fechas ya ocupadas por una reserva aceptada; pasa el cursor para ver de quién)</small></label>
+    <div class="text-center"><input type="hidden" class="cal-reserva" data-url="{% url 'panel:api_ocupadas' %}"></div>
+    <div class="aviso-ocupado alert alert-warning py-2 small mt-2 mb-0 d-none">⚠️ El rango elegido incluye fechas ocupadas: no podrás guardar la reserva como <b>aceptada</b> (sí como pendiente o cancelada).</div>
+  </div>
+  <div class="col-md-6"><label class="form-label">Fecha de entrada</label><input type="date" name="fecha_entrada" class="form-control" required></div>
+  <div class="col-md-6"><label class="form-label">Fecha de salida</label><input type="date" name="fecha_salida" class="form-control" required></div>
+  <div class="col-md-4"><label class="form-label">Adultos</label><input type="number" min="1" value="1" name="cant_adultos" class="form-control" required></div>
+  <div class="col-md-4"><label class="form-label">Niños</label><input type="number" min="0" value="0" name="cant_ninos" class="form-control"></div>
+  <div class="col-md-4"><label class="form-label">Valor total de la estadía (en pesos)</label><input type="number" min="0" step="1000" value="0" name="monto" class="form-control"><div class="form-text">Solo números, por ejemplo 150000. Déjalo en 0 si aún no lo defines.</div></div>
+  <div class="col-md-6"><label class="form-label">Estado de la reserva</label><select name="estado_reserva" class="form-select">{% for v, t in estados_reserva %}<option value="{{ v }}" {% if v == defecto_reserva %}selected{% endif %}>{{ t }}</option>{% endfor %}</select><div class="form-text">Pendiente: por responder · Aceptada: confirmada · Cancelada: no se hará.</div></div>
+  <div class="col-md-6"><label class="form-label">Estado del pago</label><select name="estado_pago" class="form-select">{% for v, t in estados_pago %}<option value="{{ v }}">{{ t }}</option>{% endfor %}</select><div class="form-text">Pendiente: no ha pagado · Abonado: pagó una parte · Pagado: pagó todo.</div></div>
+  <div class="col-12"><label class="form-label">Notas internas (solo las ves tú)</label><textarea name="notas" rows="2" maxlength="500" class="form-control"></textarea></div>
+  <div class="col-12 form-check ms-2"><input type="checkbox" class="form-check-input" name="enviar_correo" value="1" id="{{ prefijo }}Correo" checked><label class="form-check-label" for="{{ prefijo }}Correo" style="color:inherit;font-weight:400">Si la reserva queda <b>aceptada</b>, avisar por correo al cliente</label></div>
+</div>

@@ -1,0 +1,83 @@
+:root{--verde:#0f3d2c;--verde2:#1f6b4f;--fondo:#f3f5f0;--borde:#dfe6dc}
+body{background:var(--fondo);font-family:"Open Sans",system-ui,sans-serif;color:#1c2b24}
+.side{width:270px;min-height:100vh;background:var(--verde);color:#fff;position:sticky;top:0;display:flex;flex-direction:column;padding:1rem .8rem}
+.side a{color:#dbe9e1;text-decoration:none;padding:.55rem .8rem;border-radius:.6rem;display:flex;gap:.7rem;align-items:center;margin-bottom:.2rem}
+.side a:hover,.side a.on{background:#1f5a43;color:#fff}
+.marca{font-family:Georgia,serif;text-align:center;font-size:1.25rem;padding:1rem 0 1.5rem}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:1rem;padding:1.2rem}
+.kpi small{color:#5c6e65}.kpi .v{font-size:1.6rem;font-weight:700}
+.si{background:var(--verde2);color:#fff;border-radius:2rem;text-align:center;font-weight:700;font-size:1.4rem;padding:.2rem}
+.no{background:#b23b3b}
+.tabla th{background:#eaf1e6;font-weight:600;font-size:.85rem}.tabla td{vertical-align:middle}
+.badge-e{border-radius:2rem;padding:.25rem .7rem;font-size:.78rem;font-weight:600}
+.e-confirmado,.e-gestionado,.e-disponible,.e-aceptada,.e-pagado{background:#d6f0de;color:#15693a}
+.e-pendiente{background:#fdebc8;color:#9a6200}
+.e-cancelado,.e-ocupada,.e-cancelada{background:#fbd5d5;color:#b11d1d}
+.e-reembolsado,.e-abonado,.e-terminada{background:#dbe7fb;color:#27508f}
+.btn-pirque{background:var(--verde2);color:#fff;border:0}.btn-pirque:hover{background:var(--verde);color:#fff}
+.hab img{height:170px;object-fit:cover;border-radius:.8rem}
+.login-izq{background:var(--verde);color:#fff;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.pagination .active .page-link{background:var(--verde2);border-color:var(--verde2)}
+@media(max-width:991px){.side{width:100%;min-height:0;position:static;flex-direction:row;flex-wrap:wrap}.marca{display:none}}
+
+.side a{position:relative}
+.burbuja{margin-left:auto;min-width:1.5rem;height:1.5rem;padding:0 .4rem;border-radius:2rem;background:#7fc8b0;color:#0f3d2c;font-size:.78rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+
+.side a.sub{padding:.35rem .8rem .35rem 2.1rem;font-size:.88rem;margin-bottom:.1rem}
+.side a.sub i{font-size:.85rem}
+.estrellas-p{color:#e0a800;letter-spacing:.1rem}
+.resumen-chip{background:#eaf1e6;border-radius:2rem;padding:.25rem .8rem;font-size:.85rem}
+.nav-pills .nav-link{color:var(--verde);border-radius:2rem}.nav-pills .nav-link.active{background:var(--verde2)}
+
+/* Filtros de reservas colapsables en la barra lateral */
+.grupo-reservas .toggle-sub{background:none;border:0;color:#dbe9e1;display:flex;align-items:center;gap:.4rem;padding:.4rem .6rem;border-radius:.6rem;margin-bottom:.2rem}
+.grupo-reservas .toggle-sub:hover{background:#1f5a43;color:#fff}
+.toggle-sub .chevron{transition:transform .2s}
+.toggle-sub[aria-expanded="false"] .chevron{transform:rotate(-90deg)}
+.toggle-sub[aria-expanded="true"] .burbuja{display:none}       /* con los filtros abiertos, la burbuja ya se ve en «Pendientes» */
+.burbuja-sm{min-width:1.25rem;height:1.25rem;font-size:.7rem;margin-left:0}
+/* Reservas nuevas y botón actualizar */
+.tabla tr.fila-nueva > *{--bs-table-bg:#fff8dc;box-shadow:none}
+.tabla tr.fila-nueva > td:first-child{box-shadow:inset 4px 0 0 #f0ad00}
+#btnActualizar.girando i{animation:giro .8s linear infinite}
+@keyframes giro{to{transform:rotate(360deg)}}
+/* Calendario de las modales: fechas ocupadas en rojo */
+.flatpickr-calendar.inline{margin:0 auto;box-shadow:0 .3rem 1rem rgba(0,0,0,.2);max-width:100%}
+.flatpickr-day.dia-ocupado,.flatpickr-day.dia-ocupado:hover{background:#dc3545;border-color:#b02a37;color:#fff;font-weight:700;text-decoration:line-through}
+.flatpickr-day.selected,.flatpickr-day.startRange,.flatpickr-day.endRange{background:var(--verde2);border-color:var(--verde2)}
+.flatpickr-day.selected.dia-ocupado,.flatpickr-day.startRange.dia-ocupado,.flatpickr-day.endRange.dia-ocupado{background:#7d1f2b;border-color:#7d1f2b}
+
+/* ===== Más fácil de leer y usar (letra grande, buen contraste, botones con texto) ===== */
+html{font-size:112.5%}
+body{line-height:1.55}
+.text-muted{color:#4a5a52!important}
+small,.small{font-size:.92rem}
+.btn{padding:.6rem 1.1rem;font-size:1rem;border-radius:.7rem}
+.btn-sm{padding:.5rem .85rem;font-size:.95rem}
+.form-control,.form-select{font-size:1.05rem;padding:.6rem .8rem}
+.form-label{font-size:1rem}
+.form-text{font-size:.92rem;color:#4a5a52}
+.side a{font-size:1.05rem;padding:.7rem .9rem}
+.side a.sub{font-size:1rem;padding:.55rem .8rem .55rem 2.2rem}
+.tabla td,.tabla th{padding:.85rem .7rem}
+.tabla th{font-size:.95rem}
+.badge-e{font-size:.92rem;padding:.35rem .85rem;white-space:nowrap}
+.e-aceptada::before,.e-pagado::before,.e-confirmado::before{content:"✔ "}
+.e-pendiente::before{content:"⏳ "}
+.e-cancelada::before,.e-cancelado::before{content:"✖ "}
+.e-abonado::before{content:"½ "}
+.kpi .v{font-size:2.1rem}
+.si{font-size:1.8rem}
+.tarea{display:flex;align-items:center;gap:1rem;padding:1rem 1.2rem;border:2px solid #cfdcc9;border-radius:1rem;background:#f7faf5;color:#12352a;text-decoration:none;height:100%}
+.tarea:hover{border-color:var(--verde2);background:#eaf3e4;color:#12352a}
+.tarea.elegido{border-color:var(--verde2);background:#e1f0da}
+.tarea .num{min-width:3.4rem;height:3.4rem;border-radius:50%;background:#c0392b;color:#fff;font-weight:700;font-size:1.7rem;display:flex;align-items:center;justify-content:center}
+.ing-grande{font-size:3.2rem;font-weight:700;color:var(--verde);line-height:1.1}
+.ing-mini{background:#f3f7f1;border-radius:.8rem;padding:.8rem 1rem;height:100%}
+.alerta-fechas{border:2px solid #e0a800;font-size:1.05rem}
+.aviso-fila{margin-top:.4rem;background:#fff3cd;border-left:4px solid #e0a800;padding:.3rem .6rem;border-radius:.4rem;font-size:.92rem;font-weight:600}
+.acciones{display:flex;flex-wrap:wrap;gap:.4rem;min-width:190px}
+.avisos{position:fixed;top:1rem;right:1rem;z-index:2000;max-width:min(540px,92vw)}
+:focus-visible{outline:3px solid #f0ad00!important;outline-offset:2px}
+.ayuda .accordion-button{font-size:1.15rem;font-weight:600}
+.ayuda .accordion-body{font-size:1.08rem;line-height:1.75}

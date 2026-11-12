@@ -1,0 +1,165 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% load idioma_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Services - {{ SITIO.nombre }}{% elif LANGUAGE_CODE == 'pt' %}Serviços - {{ SITIO.nombre }}{% else %}Servicios - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">
+    {% if LANGUAGE_CODE == 'en' %}Services and Experiences{% elif LANGUAGE_CODE == 'pt' %}Serviços e Experiências{% else %}Servicios y Experiencias{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container">
+        
+        <!-- Carrusel de imágenes (las que tengan «carrusel» en el nombre, en static/img) -->
+        {% if carrusel %}
+        <div id="carruselServicios" class="carousel slide carousel-fade carrusel-servicios mx-auto mb-5 shadow-lg" data-bs-ride="carousel" data-bs-interval="4500">
+            <div class="carousel-indicators">
+                {% for img in carrusel %}<button type="button" data-bs-target="#carruselServicios" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="{{ forloop.counter }}"></button>{% endfor %}
+            </div>
+            <div class="carousel-inner">
+                {% for img in carrusel %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}"><img src="{% static img %}" class="d-block w-100" alt="{{ SITIO.nombre }} {{ forloop.counter }}"></div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carruselServicios" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">{% t "Anterior" "Previous" "Anterior" %}</span></button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carruselServicios" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">{% t "Siguiente" "Next" "Próximo" %}</span></button>
+        </div>
+        {% endif %}
+
+        <!-- Horarios de Atención (el día de hoy aparece destacado) -->
+        <div class="horario-card mx-auto mb-5">
+            <h2 class="h5 text-center font-serif text-warning titulo-seccion mb-4">🕒 {% t "Horarios de Atención" "Opening Hours" "Horário de Atendimento" %}</h2>
+            <div class="horario-grid">
+                {% for h in horario %}
+                <div class="horario-dia {% if h.cerrado %}cerrado{% endif %} {% if h.hoy %}hoy{% endif %}">
+                    <span class="dia">{{ h.dia }}{% if h.hoy %} <span class="badge bg-warning text-dark ms-1">{% t "Hoy" "Today" "Hoje" %}</span>{% endif %}</span>
+                    <span class="hora">{% if h.cerrado %}{% t "Cerrado" "Closed" "Fechado" %}{% else %}{{ h.hora }}{% endif %}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Fila de Servicios Básicos -->
+        <div class="row g-3 my-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">📶</span>
+                    <h6 class="mt-2 mb-1 fw-bold">WiFi</h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}Throughout the property{% elif LANGUAGE_CODE == 'pt' %}Em todo o recinto{% else %}En todo el recinto{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">🚫📺</span>
+                    <h6 class="mt-2 mb-1 fw-bold">
+                        {% if LANGUAGE_CODE == 'en' %}No TV{% elif LANGUAGE_CODE == 'pt' %}Sem TV{% else %}Sin TV{% endif %}
+                    </h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}Total digital detox{% elif LANGUAGE_CODE == 'pt' %}Desconexão total{% else %}Desconexión total{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">🚗</span>
+                    <h6 class="mt-2 mb-1 fw-bold">
+                        {% if LANGUAGE_CODE == 'en' %}Parking{% elif LANGUAGE_CODE == 'pt' %}Estacionamento{% else %}Estacionamiento{% endif %}
+                    </h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}For 3 vehicles{% elif LANGUAGE_CODE == 'pt' %}Para 3 veículos{% else %}Para 3 vehículos{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded border border-light-subtle bg-dark bg-opacity-25 text-light">
+                    <span class="fs-2">🍽️</span>
+                    <h6 class="mt-2 mb-1 fw-bold">
+                        {% if LANGUAGE_CODE == 'en' %}Full Board{% elif LANGUAGE_CODE == 'pt' %}Pensão Completa{% else %}Pensión Completa{% endif %}
+                    </h6>
+                    <small class="text-light-50">
+                        {% if LANGUAGE_CODE == 'en' %}All meals included{% elif LANGUAGE_CODE == 'pt' %}Refeições incluídas{% else %}Comidas incluidas{% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Título Experiencias -->
+        <h2 class="text-center my-5 text-light font-serif">
+            {% if LANGUAGE_CODE == 'en' %}Our Experiences{% elif LANGUAGE_CODE == 'pt' %}Nossas Experiências{% else %}Nuestras Experiencias{% endif %}
+        </h2>
+
+        <!-- Tarjetas de Experiencias (las tres imágenes tienen el mismo tamaño: .exp-img) -->
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            <div class="col">
+                <div class="card h-100 exp-card bg-dark bg-opacity-25 border border-light-subtle text-light shadow">
+                    <img src="{% static 'img/banoluna.jpg' %}" class="exp-img" alt="{% t 'Baños de Luna' 'Moon Baths' 'Banhos de Lua' %}">
+                    <div class="card-body p-4">
+                        <h3 class="h5 font-serif text-warning">{% t "Baños de Luna" "Moon Baths" "Banhos de Lua" %}</h3>
+                        <p class="small mb-0">{% t "Tratamiento estético corporal para decolorar el vello fino a tono dorado, sumado a una exfoliación e hidratación profunda de la piel al aire libre." "Body aesthetic treatment to lighten fine hair to a golden tone, along with outdoor exfoliation and deep skin hydration." "Tratamento estético corporal para clarear os pelos finos a um tom dourado, somado a esfoliação e hidratação profunda da pele ao ar livre." %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 exp-card bg-dark bg-opacity-25 border border-light-subtle text-light shadow">
+                    <img src="{% static 'img/piedrascalientes.jpg' %}" class="exp-img" alt="{% t 'Piedras Calientes' 'Hot Stones' 'Pedras Quentes' %}">
+                    <div class="card-body p-4">
+                        <h3 class="h5 font-serif text-warning">{% t "Piedras Calientes" "Hot Stones" "Pedras Quentes" %}</h3>
+                        <p class="small mb-0">{% t "Masaje terapéutico con piedras volcánicas templadas, diseñado para aliviar la tensión muscular y restaurar el equilibrio natural." "Therapeutic massage with warm volcanic stones, designed to relieve muscle tension and restore natural balance." "Massagem terapêutica com pedras vulcânicas aquecidas, criada para aliviar a tensão muscular e restaurar o equilíbrio natural." %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 exp-card bg-dark bg-opacity-25 border border-light-subtle text-light shadow">
+                    <img src="{% static 'img/banoarenavolcanica.png' %}" class="exp-img" alt="{% t 'Baños de arena volcánica' 'Volcanic Sand Baths' 'Banhos de areia vulcânica' %}">
+                    <div class="card-body p-4">
+                        <h3 class="h5 font-serif text-warning">{% t "Baños de arena volcánica" "Volcanic Sand Baths" "Banhos de areia vulcânica" %}</h3>
+                        <p class="small mb-0">{% t "Una terapia de relajación y bienestar en la que una persona es enterrada hasta el cuello en arena negra volcánica caliente capaz de estimular el flujo sanguíneo y la oxigenación de los tejidos." "A relaxation and wellness therapy in which a person is buried up to the neck in hot black volcanic sand, which can stimulate blood flow and the oxygenation of tissues." "Uma terapia de relaxamento e bem-estar em que a pessoa é enterrada até o pescoço em areia vulcânica negra quente, capaz de estimular o fluxo sanguíneo e a oxigenação dos tecidos." %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque de Pensión Completa -->
+        <div class="p-4 my-5 rounded bg-dark bg-opacity-50 border border-secondary text-light">
+            <h4 class="text-center mb-4 font-serif">
+                {% if LANGUAGE_CODE == 'en' %}Full Board Included{% elif LANGUAGE_CODE == 'pt' %}Pensão Completa Incluída{% else %}Pensión Completa Incluida{% endif %}
+            </h4>
+            <div class="row text-center">
+                <div class="col-3">
+                    <i class="bi bi-cup-hot fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Breakfast{% elif LANGUAGE_CODE == 'pt' %}Café da manhã{% else %}Desayuno{% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <i class="bi bi-egg-fried fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Lunch{% elif LANGUAGE_CODE == 'pt' %}Almoço{% else %}Almuerzo{% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <i class="bi bi-cup-straw fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Afternoon Tea{% elif LANGUAGE_CODE == 'pt' %}Lanche da tarde{% else %}Once{% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <i class="bi bi-moon-stars fs-2 text-warning"></i>
+                    <div class="fw-bold mt-2">
+                        {% if LANGUAGE_CODE == 'en' %}Dinner{% elif LANGUAGE_CODE == 'pt' %}Jantar{% else %}Cena{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% load static %}<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf" content="{{ csrf_token }}">
+<title>{% block title %}Panel{% endblock %} · Hospedaje Rural Pirque</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="{% static 'panel/css/panel.css' %}" rel="stylesheet"></head>
+<body>{% block cuerpo %}{% with n=request.resolver_match.url_name %}
+<div class="d-lg-flex">
+<aside class="side">
+  <div class="marca"><img src="{% static 'img/logo.svg' %}" alt="" style="height:54px" class="d-block mx-auto mb-2">Hospedaje Rural<br><b>Pirque</b></div>
+  <a href="{% url 'panel:inicio' %}" class="{% if n == 'inicio' %}on{% endif %}"><i class="bi bi-house-fill"></i>Inicio</a>
+  {% with en_reservas=n|slice:":8" %}
+  <div class="d-flex align-items-center grupo-reservas">
+    <a href="{% url 'panel:reservas' %}" class="flex-grow-1 {% if n == 'reservas' %}on{% endif %}"><i class="bi bi-calendar-check"></i>Reservas</a>
+    <button type="button" class="toggle-sub" data-bs-toggle="collapse" data-bs-target="#subReservas" aria-controls="subReservas"
+            aria-expanded="{% if en_reservas == 'reservas' %}true{% else %}false{% endif %}" aria-label="Mostrar u ocultar los filtros de reservas" title="Mostrar u ocultar los filtros">
+      <span id="badgeReservasGrupo" class="burbuja burbuja-sm {% if not reservas_pendientes %}d-none{% endif %}" title="Reservas pendientes de aceptar">{{ reservas_pendientes|default:0 }}</span>
+      <i class="bi bi-chevron-down chevron"></i></button>
+  </div>
+  <div class="collapse {% if en_reservas == 'reservas' %}show{% endif %}" id="subReservas">
+  <a href="{% url 'panel:reservas_pendientes' %}" class="sub {% if n == 'reservas_pendientes' %}on{% endif %}"><i class="bi bi-hourglass-split"></i>Pendientes<span id="badgeReservas" class="burbuja {% if not reservas_pendientes %}d-none{% endif %}" title="Reservas pendientes de aceptar">{{ reservas_pendientes|default:0 }}</span></a>
+  <a href="{% url 'panel:reservas_aceptadas' %}" class="sub {% if n == 'reservas_aceptadas' %}on{% endif %}"><i class="bi bi-check2-circle"></i>Aceptadas</a>
+  <a href="{% url 'panel:reservas_terminadas' %}" class="sub {% if n == 'reservas_terminadas' %}on{% endif %}"><i class="bi bi-flag"></i>Terminadas</a>
+  </div>
+  {% endwith %}
+  <a href="{% url 'panel:mensajes' %}" class="{% if n == 'mensajes' %}on{% endif %}"><i class="bi bi-envelope"></i>Mensajes<span id="badgeMensajes" class="burbuja {% if not mensajes_pendientes %}d-none{% endif %}" data-url="{% url 'panel:api_pendientes' %}" title="Mensajes sin gestionar">{{ mensajes_pendientes|default:0 }}</span></a>
+  <a href="{% url 'panel:clientes' %}" class="{% if n == 'clientes' %}on{% endif %}"><i class="bi bi-people"></i>Clientes</a>
+  <a href="{% url 'panel:resenas' %}" class="{% if n == 'resenas' %}on{% endif %}"><i class="bi bi-star"></i>Reseñas</a>
+  <a href="{% url 'panel:reportes' %}" class="{% if n == 'reportes' %}on{% endif %}"><i class="bi bi-bar-chart"></i>Reportes</a>
+  <a href="{% url 'panel:ayuda' %}" class="{% if n == 'ayuda' %}on{% endif %}"><i class="bi bi-question-circle"></i>Ayuda</a>
+  <hr><a href="{% url 'panel:configuracion' %}" class="{% if n == 'configuracion' %}on{% endif %}"><i class="bi bi-gear"></i>Configuraciones avanzadas</a>
+  <a href="{% url 'panel:logout' %}" class="mt-auto"><i class="bi bi-box-arrow-left"></i>Cerrar sesión</a>
+</aside>
+<main class="flex-grow-1 p-4">
+  <div id="avisos" class="avisos" aria-live="polite"></div>
+  <header class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div><h1 class="h3 mb-0">Hola, {{ request.user.get_short_name|default:request.user.username }}</h1>
+      <span class="text-muted">Panel de administración de Hospedaje Rural Pirque</span></div>
+    <div class="d-flex align-items-center gap-3">
+      <div class="text-end"><span class="text-muted d-block">Hoy es</span><b>{% now "l j \d\e F \d\e Y" %}</b></div>
+      <a href="{% url 'panel:ayuda' %}" class="btn btn-outline-success"><i class="bi bi-question-circle me-1"></i>¿Necesitas ayuda?</a>
+    </div>
+  </header>
+  {% block content %}{% endblock %}
+</main></div>{% endwith %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'panel/js/panel.js' %}"></script>
+{% block scripts %}{% endblock %}</body></html>
