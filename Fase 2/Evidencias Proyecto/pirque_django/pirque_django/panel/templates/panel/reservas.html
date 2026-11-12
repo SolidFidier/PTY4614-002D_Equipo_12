@@ -1,0 +1,50 @@
+{% extends "panel/base.html" %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h2 class="h3 mb-0"><i class="bi bi-calendar-check me-2"></i>{{ titulo }}</h2>
+ <div class="d-flex align-items-center gap-2 flex-wrap"><span id="ultimaActualizacion" class="text-muted"></span>
+  <button class="btn btn-outline-success" id="btnActualizar" type="button" title="Actualizar la lista (se actualiza sola cada 30 segundos)"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
+  <button class="btn btn-pirque" data-bs-toggle="modal" data-bs-target="#mdNueva"><i class="bi bi-plus-lg me-1"></i>Nueva reserva</button></div></div>
+
+{% include "panel/_alertas.html" %}
+
+<div id="pillsReservas"><ul class="nav nav-pills mb-3 flex-wrap">{% for k, nombre in secciones.items %}
+ <li class="nav-item"><a class="nav-link {% if k == seccion %}active{% endif %}" href="{% if k == 'todas' %}{% url 'panel:reservas' %}{% elif k == 'pendientes' %}{% url 'panel:reservas_pendientes' %}{% elif k == 'aceptadas' %}{% url 'panel:reservas_aceptadas' %}{% elif k == 'terminadas' %}{% url 'panel:reservas_terminadas' %}{% else %}{% url 'panel:reservas_canceladas' %}{% endif %}">{{ k|capfirst }} <span class="badge bg-light text-dark">{% if k == 'todas' %}{{ conteos.todas }}{% elif k == 'pendientes' %}{{ conteos.pendientes }}{% elif k == 'aceptadas' %}{{ conteos.aceptadas }}{% elif k == 'terminadas' %}{{ conteos.terminadas }}{% else %}{{ conteos.canceladas }}{% endif %}</span></a></li>{% endfor %}</ul></div>
+
+<form class="d-flex flex-wrap gap-2 mb-3"><input name="q" value="{{ q }}" class="form-control" style="max-width:360px" placeholder="Buscar por nombre, RUT o número de reserva">
+ <select name="pago" class="form-select w-auto" onchange="this.form.submit()"><option value="">Todos los pagos</option>{% for v, t in estados_pago %}<option value="{{ v }}" {% if v == pago %}selected{% endif %}>Pago: {{ t }}</option>{% endfor %}</select>
+ <select name="fecha" class="form-select w-auto" onchange="this.form.submit()"><option value="">Todas las fechas</option><option value="mes" {% if f == 'mes' %}selected{% endif %}>Entrada este mes</option></select>
+ <label for="selOrden" class="fw-bold align-self-center mb-0">Ordenar:</label><select id="selOrden" name="orden" class="form-select w-auto" style="min-width:19rem" onchange="this.form.submit()">{% for k, nombre in ordenes.items %}<option value="{{ k }}" {% if k == orden %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select>
+ <button class="btn btn-outline-success"><i class="bi bi-search"></i> Buscar</button></form>
+
+<div id="listaReservas" class="tarjeta"><div class="table-responsive"><table class="table tabla"><thead><tr><th>Reserva</th><th>Huésped</th><th>Estadía</th><th>Valor</th><th>Estado de la reserva</th><th>Estado del pago</th>{% if seccion == 'terminadas' %}<th>Reseña</th>{% endif %}<th>Qué hacer</th></tr></thead><tbody>
+{% for r in lista %}<tr class="{% if not r.vista %}fila-nueva{% endif %}">
+<td><b>#{{ r.id|stringformat:"03d" }}</b>{% if not r.vista %}<br><span class="badge bg-warning text-dark etq-nueva" title="Solicitud nueva: se quita al abrirla o aceptarla">★ Nueva</span>{% endif %}<br><small class="text-muted">Creada {{ r.fecha_reserva|date:"d/m H:i" }}</small></td>
+<td><b>{{ r.nombre }} {{ r.apellido }}</b><br><small class="text-muted">{{ r.cliente_id }}</small></td>
+<td>{{ r.fecha_entrada|date:"j M Y" }} → {{ r.fecha_salida|date:"j M Y" }}<br><small class="text-muted">{{ r.noches }} noche{{ r.noches|pluralize }} · {{ r.personas }} persona{{ r.personas|pluralize }}</small>
+  {% if r.choque %}<div class="aviso-fila">⚠ Fechas repetidas: {{ r.choque }}</div>{% endif %}</td>
+<td>{% if r.monto %}${{ r.monto }}{% else %}<small class="text-muted">por definir</small>{% endif %}</td>
+<td><span class="badge-e e-{{ r.estado_reserva }}">{{ r.estado_reserva|capfirst }}</span></td><td><span class="badge-e e-{{ r.estado_pago }}">{{ r.estado_pago|capfirst }}</span></td>
+{% if seccion == 'terminadas' %}<td>{% if r.res and r.res.respondida %}<span class="estrellas-p">{% for i in r.res.estrellas %}★{% endfor %}</span>{% elif r.res and r.res.fecha_solicitud %}<small class="text-muted">Invitación enviada</small>{% else %}<small class="text-muted">Sin enviar</small>{% endif %}</td>{% endif %}
+<td><div class="acciones">
+{% if r.estado_reserva == 'pendiente' %}<button class="btn btn-sm btn-success" data-post="{% url 'panel:reserva_aceptar' r.id %}" data-msg="¿Aceptar la reserva #{{ r.id }} de {{ r.nombre }} {{ r.apellido }}?&#10;&#10;Se le enviará un correo de confirmación a {{ r.correo }}."><i class="bi bi-check-lg"></i> Aceptar</button>{% endif %}
+<button class="btn btn-sm btn-outline-secondary" data-edit="#mdEditar" {% if not r.vista %}data-vista-url="{% url 'panel:reserva_vista' r.id %}"{% endif %} data-url="{% url 'panel:reserva_editar' r.id %}" data-nombre="{{ r.nombre }}" data-apellido="{{ r.apellido }}" data-documento="{{ r.cliente_id }}" data-nacionalidad="{{ r.cliente.nacionalidad }}" data-telefono="{{ r.telefono }}" data-correo="{{ r.correo }}" data-fecha_entrada="{{ r.fecha_entrada|date:'Y-m-d' }}" data-fecha_salida="{{ r.fecha_salida|date:'Y-m-d' }}" data-cant_adultos="{{ r.cant_adultos }}" data-cant_ninos="{{ r.cant_ninos|default:0 }}" data-monto="{{ r.monto }}" data-estado_reserva="{{ r.estado_reserva }}" data-estado_pago="{{ r.estado_pago }}" data-notas="{{ r.notas }}"><i class="bi bi-pencil"></i> Ver / Editar</button>
+{% if seccion == 'terminadas' and not r.res.respondida %}<button class="btn btn-sm btn-outline-secondary" data-post="{% url 'panel:reserva_resena' r.id %}" data-msg="¿Enviar a {{ r.correo }} la invitación para dejar una reseña?"><i class="bi bi-envelope-heart"></i> Pedir reseña</button>{% endif %}
+<button class="btn btn-sm btn-outline-danger" data-delete="{% url 'panel:reserva_eliminar' r.id %}" data-msg="¿Eliminar la reserva #{{ r.id }} de {{ r.nombre }} {{ r.apellido }}?&#10;&#10;Esta acción no se puede deshacer."><i class="bi bi-trash"></i> Eliminar</button></div></td></tr>
+{% empty %}<tr><td colspan="8" class="text-center text-muted py-4">No hay reservas en esta sección.</td></tr>{% endfor %}</tbody></table></div>{% include "panel/_pag.html" %}</div>
+
+<div class="modal fade" id="mdNueva" tabindex="-1"><div class="modal-dialog modal-lg"><form class="modal-content" data-ajax action="{% url 'panel:reserva_crear' %}">{% csrf_token %}
+ <div class="modal-header"><h5 class="modal-title">Nueva reserva</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+ <div class="modal-body">{% include "panel/_form_reserva.html" with prefijo="n" defecto_reserva="aceptada" %}
+  <p class="text-muted mt-3 mb-0">Si el cliente no existe se crea; si existe, se actualizan sus datos. Las reservas que hacen los clientes desde el sitio llegan como <b>pendientes</b>.</p></div>
+ <div class="modal-footer"><button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-pirque"><i class="bi bi-check-lg"></i> Guardar reserva</button></div></form></div></div>
+
+<div class="modal fade" id="mdEditar" tabindex="-1"><div class="modal-dialog modal-lg"><form class="modal-content" data-ajax>{% csrf_token %}
+ <div class="modal-header"><h5 class="modal-title">Ver o modificar la reserva</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+ <div class="modal-body">{% include "panel/_form_reserva.html" with prefijo="e" defecto_reserva="pendiente" %}</div>
+ <div class="modal-footer"><button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cerrar sin cambios</button><button class="btn btn-pirque"><i class="bi bi-check-lg"></i> Guardar cambios</button></div></form></div></div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "panel/base.html" %}
+{% block content %}
+<h2 class="h3 mb-2"><i class="bi bi-question-circle me-2"></i>Ayuda: cómo usar el panel</h2>
+<p class="fs-5 text-muted mb-4">Aquí tienes los pasos para las tareas de todos los días. Haz clic en cada título para abrirlo.</p>
+
+<div class="accordion ayuda" id="ayuda">
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#a1">1. Llegó una solicitud de reserva, ¿qué hago?</button></h3>
+  <div id="a1" class="accordion-collapse collapse show" data-bs-parent="#ayuda"><div class="accordion-body">
+   <ol>
+     <li>En <b>Inicio</b> aparece el cuadro «Qué necesita tu atención hoy». En el menú de la izquierda, un número de color junto a <b>Reservas</b> te avisa cuántas hay por responder.</li>
+     <li>Entra a <b>Reservas → Pendientes</b>. Las solicitudes nuevas tienen el fondo amarillo y una estrella <b>★ Nueva</b>.</li>
+     <li>Pulsa <b>Ver / Editar</b> para ver todos los datos. Al abrirla, el color amarillo desaparece.</li>
+     <li>Conversa con el cliente por WhatsApp (él ya te escribió con los datos de su solicitud).</li>
+     <li>Si lo confirmas: escribe el <b>valor total de la estadía</b>, elige el <b>estado del pago</b> y cambia el <b>estado de la reserva</b> a «Aceptada». Pulsa <b>Guardar cambios</b>. También puedes usar el botón verde <b>Aceptar</b> de la lista.</li>
+     <li>Al aceptar, el cliente recibe un <b>correo de confirmación</b> automático.</li>
+   </ol></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2">2. ¿Qué significa el aviso amarillo de «fechas repetidas»?</button></h3>
+  <div id="a2" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <p>El alojamiento es para <b>un solo grupo a la vez</b>. Si dos personas piden fechas que se cruzan, el panel te lo avisa con un recuadro amarillo arriba de la lista de <b>Reservas</b>, con los nombres y números de las reservas, y marca cada reserva afectada con «⚠ Fechas repetidas».</p>
+   <p class="mb-0">Tú decides cuál aceptar. Al aceptar una, las otras que se cruzan ya no se podrán aceptar: tendrás que cancelarlas o cambiarles las fechas.</p></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a3">3. Crear una reserva a mano</button></h3>
+  <div id="a3" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <ol>
+     <li>Entra a <b>Reservas</b> y pulsa el botón verde <b>Nueva reserva</b>.</li>
+     <li>En el calendario, los días en <b style="color:#dc3545">rojo</b> ya están ocupados. Elige el día de entrada y el de salida.</li>
+     <li>Completa los datos del cliente, el valor y los estados. Pulsa <b>Guardar reserva</b>.</li>
+   </ol></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a4">4. ¿Qué significa cada estado?</button></h3>
+  <div id="a4" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <p class="mb-1"><b>Estado de la reserva</b></p>
+   <ul><li><b>Pendiente:</b> el cliente pidió fechas y aún no respondes.</li><li><b>Aceptada:</b> la confirmaste. Esas fechas quedan ocupadas.</li><li><b>Cancelada:</b> no se realizará.</li>
+       <li><b>Terminada</b> (se ve en la sección Terminadas): una reserva aceptada cuya salida ya pasó.</li></ul>
+   <p class="mb-1"><b>Estado del pago</b></p>
+   <ul class="mb-0"><li><b>Pendiente:</b> todavía no ha pagado.</li><li><b>Abonado:</b> pagó una parte.</li><li><b>Pagado:</b> pagó todo.</li><li><b>Cancelado:</b> la reserva se canceló.</li></ul></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a5">5. Un cliente quiere cancelar</button></h3>
+  <div id="a5" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <p class="mb-0">Las cancelaciones llegan por WhatsApp. Entra a la reserva con <b>Ver / Editar</b>, cambia el <b>estado de la reserva</b> a «Cancelada» y el <b>estado del pago</b> a «Cancelado» (o como corresponda) y guarda.</p></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a6">6. Mensajes de la página de contacto</button></h3>
+  <div id="a6" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <p class="mb-0">Entra a <b>Mensajes</b>. Pulsa <b>Ver detalle</b> para leer el mensaje. Cuando ya lo respondiste, pulsa «Marcar como gestionado»: el número del menú baja solo.</p></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a7">7. Reseñas de los huéspedes</button></h3>
+  <div id="a7" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <ul class="mb-0">
+     <li>Cuando una estadía termina, el huésped recibe un correo con un enlace personal para dejar su reseña.</li>
+     <li>Las reseñas llegan <b>ocultas</b>. En <b>Reseñas</b>, pulsa el botón de la columna «En el sitio» para <b>mostrarlas</b> en la página de inicio, u ocultarlas de nuevo. También puedes eliminarlas.</li>
+     <li>Si un huésped no recibió el correo, pulsa <b>Copiar enlace</b> y envíaselo por WhatsApp.</li>
+   </ul></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a8">8. Reportes</button></h3>
+  <div id="a8" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <ol>
+     <li>Entra a <b>Reportes</b>. Elige el <b>período</b> (este mes, últimos 3 meses, este año o todos los registros) o un año y mes en particular.</li>
+     <li>Elige el <b>reporte</b>. El de <b>Ingresos</b> te muestra cuánto se pagó y la lista de reservas que aún no están pagadas.</li>
+     <li>Pulsa <b>Descargar en PDF</b> si quieres guardarlo o imprimirlo.</li>
+   </ol></div></div></div>
+
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a9">9. Algo no se ve actualizado</button></h3>
+  <div id="a9" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <p class="mb-0">En la lista de reservas pulsa <b>Actualizar</b>. Si sigue igual, presiona la tecla <b>F5</b> del teclado para recargar la página. Si el panel te pide entrar otra vez, escribe de nuevo tu usuario y contraseña.</p></div></div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% load static %}
+{% load idioma_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% t "Solicitar reserva" "Request a booking" "Solicitar reserva" %} - {{ SITIO.nombre }}{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">{% t "Solicita tu Estadía" "Request your Stay" "Solicite sua Estadia" %}</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+    <div class="container" style="max-width: 760px;">
+        <div class="card bg-dark bg-opacity-50 border border-light-subtle rounded-4 shadow-lg text-light">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="h4 font-serif text-warning text-center titulo-seccion mb-4">📅 {% t "Elige tus fechas" "Choose your dates" "Escolha suas datas" %}</h2>
+
+                <p class="small text-center opacity-75 mb-4">
+                    {% t "Reservando como <strong>{nombre}</strong> · {doc} " "Booking as <strong>{nombre}</strong> · {doc} " "Reservando como <strong>{nombre}</strong> · {doc} " nombre=huesped.nombre doc=huesped.documento %}
+                    <a href="{% url 'login_cliente' %}" class="text-warning">{% t "(cambiar)" "(change)" "(alterar)" %}</a>
+                </p>
+
+                {% if form.non_field_errors %}<div class="alert alert-danger py-2 small">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+
+                <form method="post" id="formReserva" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="llegada" id="id_llegada" value="{{ form.llegada.value|default:'' }}">
+                    <input type="hidden" name="salida" id="id_salida" value="{{ form.salida.value|default:'' }}">
+
+                    <input type="hidden" id="calendario">
+                    <div class="mb-2"></div>
+                    <div class="leyenda-calendario d-flex flex-wrap justify-content-center gap-3 small mb-3">
+                        <span><i class="cuadro libre"></i> {% t "Disponible" "Available" "Disponível" %}</span>
+                        <span><i class="cuadro ocupado"></i> {% t "Ocupado" "Taken" "Ocupado" %}</span>
+                        <span><i class="cuadro elegido"></i> {% t "Tu selección" "Your selection" "Sua seleção" %}</span>
+                    </div>
+                    <div id="resumenFechas" class="text-center fw-bold mb-1" aria-live="polite"></div>
+                    <div id="errFechas" class="text-center text-danger small fw-bold mb-3"></div>
+
+                    <hr class="border-secondary">
+                    <h3 class="h6 font-serif text-warning mb-3">👥 {% t "Huéspedes" "Guests" "Hóspedes" %}</h3>
+                    <div class="row g-3 align-items-center mb-4">
+                        <div class="col-6 col-md-4 offset-md-2"><label class="form-label small mb-1" for="{{ form.adultos.id_for_label }}">{% t "Adultos (+18)" "Adults (18+)" "Adultos (+18)" %}</label>{{ form.adultos }}</div>
+                        <div class="col-6 col-md-4"><label class="form-label small mb-1" for="{{ form.ninos.id_for_label }}">{% t "Niños (0-17 años)" "Children (0-17 years)" "Crianças (0-17 anos)" %}</label>{{ form.ninos }}</div>
+                    </div>
+
+                    <div class="nota-whatsapp rounded-3 p-3 small mb-4">
+                        <i class="bi bi-whatsapp me-1"></i>
+                        {% t "Nuestro servicio es <strong>exclusivo para tu grupo</strong>. Al continuar abriremos WhatsApp con un mensaje listo para enviar. Tu solicitud queda <em>pendiente</em> hasta que la confirmemos." "Our service is <strong>exclusive to your group</strong>. When you continue we will open WhatsApp with a ready-to-send message. Your request stays <em>pending</em> until we confirm it." "Nosso serviço é <strong>exclusivo para o seu grupo</strong>. Ao continuar abriremos o WhatsApp com uma mensagem pronta para enviar. Sua solicitação fica <em>pendente</em> até a confirmarmos." %}
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-whatsapp btn-lg rounded-pill px-5 fw-bold"><i class="bi bi-whatsapp me-2"></i>{% t "Continuar por WhatsApp" "Continue on WhatsApp" "Continuar pelo WhatsApp" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{% if LANGUAGE_CODE == 'es' %}<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+{% elif LANGUAGE_CODE == 'pt' %}<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>{% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", async function () {
+    const lang = "{{ LANGUAGE_CODE }}";
+    const T = {
+        ocupado: "{% t 'Fecha ocupada' 'Date taken' 'Data ocupada' %}",
+        cruza: "{% t 'Ese rango incluye fechas ocupadas. Elige otras fechas.' 'That range includes taken dates. Please choose other dates.' 'Esse período inclui datas ocupadas. Escolha outras datas.' %}",
+        pide: "{% t 'Selecciona llegada y salida en el calendario.' 'Select check-in and check-out on the calendar.' 'Selecione chegada e saída no calendário.' %}",
+        noches: "{% t 'noche(s)' 'night(s)' 'noite(s)' %}",
+        llegada: "{% t 'Llegada' 'Check-in' 'Chegada' %}",
+        salida: "{% t 'Salida' 'Check-out' 'Saída' %}"
+    };
+    const llegada = document.getElementById("id_llegada"), salida = document.getElementById("id_salida");
+    const resumen = document.getElementById("resumenFechas"), errores = document.getElementById("errFechas");
+    const iso = d => flatpickr.formatDate(d, "Y-m-d");
+    const dia = s => new Date(s + "T00:00:00");
+
+    // Fechas ocupadas (reservas aceptadas) que vienen del servidor
+    let ocupadas = [];
+    try { ocupadas = (await (await fetch("{{ api_url }}")).json()).ocupadas; } catch (e) {}
+    const estaOcupado = d => ocupadas.some(o => d >= dia(o.from) && d <= dia(o.to));
+    const rangoLibre = (a, b) => { for (let d = new Date(a); d < b; d.setDate(d.getDate() + 1)) if (estaOcupado(d)) return false; return true; };
+
+    const previas = llegada.value && salida.value ? [llegada.value, salida.value] : null;
+    const pintarResumen = (a, b) => {
+        resumen.textContent = a && b ? `${T.llegada}: ${flatpickr.formatDate(a, "d/m/Y")} → ${T.salida}: ${flatpickr.formatDate(b, "d/m/Y")} (${Math.round((b - a) / 864e5)} ${T.noches})` : "";
+    };
+
+    flatpickr("#calendario", {
+        inline: true, mode: "range", minDate: "today", showMonths: window.innerWidth >= 768 ? 2 : 1, dateFormat: "Y-m-d",
+        locale: lang === "en" ? "default" : lang, defaultDate: previas, disable: ocupadas.map(o => ({from: o.from, to: o.to})),
+        // Las fechas ocupadas se pintan en rojo (y no solo se deshabilitan)
+        onDayCreate: (_, __, ___, el) => { if (estaOcupado(el.dateObj)) { el.classList.add("dia-ocupado"); el.title = T.ocupado; } },
+        onChange: (sel, _, fp) => {
+            errores.textContent = "";
+            if (sel.length === 2) {
+                if (!rangoLibre(sel[0], sel[1])) { errores.textContent = T.cruza; fp.clear(); llegada.value = salida.value = ""; pintarResumen(); return; }
+                llegada.value = iso(sel[0]); salida.value = iso(sel[1]); pintarResumen(sel[0], sel[1]);
+            } else { llegada.value = salida.value = ""; pintarResumen(); }
+        }
+    });
+    if (previas) pintarResumen(dia(previas[0]), dia(previas[1]));
+    document.getElementById("formReserva").addEventListener("submit", e => {
+        if (!llegada.value || !salida.value) { e.preventDefault(); errores.textContent = T.pide; }
+    });
+});
+</script>
+{% endblock %}

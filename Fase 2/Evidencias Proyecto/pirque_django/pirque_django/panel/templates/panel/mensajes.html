@@ -1,0 +1,21 @@
+{% extends "panel/base.html" %}
+{% block content %}
+<div class="tarjeta"><div class="d-flex justify-content-between flex-wrap gap-2 mb-3"><h2 class="h5 mb-0">Bandeja de mensajes <span class="badge bg-light text-dark">{{ total }} mensajes</span></h2>
+ <form class="d-flex gap-2"><input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar por nombre, correo o ID">
+ <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()"><option value="">Todos los mensajes</option><option value="pendiente" {% if est == 'pendiente' %}selected{% endif %}>Pendientes</option><option value="gestionado" {% if est == 'gestionado' %}selected{% endif %}>Gestionados</option></select></form></div>
+<div class="table-responsive"><table class="table tabla table-hover"><thead><tr><th>ID</th><th>Remitente</th><th>Correo</th><th>Envío</th><th>Gestión</th><th>Administrador</th><th>Estado</th><th></th></tr></thead><tbody>
+{% for m in page %}{% with est_m=m.fecha_gestion|yesno:"gestionado,pendiente" %}
+<tr><td><b>{{ m.codigo }}</b></td><td>{{ m.nombre }}</td><td>{{ m.correo }}</td><td>{{ m.fecha_envio|date:"d/m/Y H:i" }}</td><td>{{ m.fecha_gestion|date:"d/m/Y H:i"|default:"—" }}</td><td>{{ m.admin_codigo|default:"—" }}</td>
+<td><span class="badge-e e-{{ est_m }}">{{ est_m|capfirst }}</span></td>
+<td><button class="btn btn-sm" data-edit="#mdMsg" data-id="{{ m.id }}" data-codigo="{{ m.codigo }}" data-nombre="{{ m.nombre }}" data-correo="{{ m.correo }}" data-contenido="{{ m.contenido }}"
+ data-enviado="{{ m.fecha_envio|date:'d/m/Y H:i' }}" data-gestionado="{{ m.fecha_gestion|date:'d/m/Y H:i' }}" data-admin="{{ m.admin_codigo }} {{ m.admin_nombre }}" data-estado="{{ est_m|capfirst }}"
+ data-accion="{% if m.fecha_gestion %}Marcar como pendiente{% else %}Marcar como gestionado{% endif %}" data-toggle="{% url 'panel:mensaje_toggle' m.id %}"><i class="bi bi-eye"></i> Ver detalle</button></td></tr>{% endwith %}
+{% empty %}<tr><td colspan="8" class="text-center text-muted">No hay mensajes.</td></tr>{% endfor %}</tbody></table></div>{% include "panel/_pag.html" %}</div>
+<div class="modal fade" id="mdMsg" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content p-2">
+ <div class="modal-header"><h5 class="modal-title">Detalle del mensaje · <span data-fill="codigo"></span></h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+ <div class="modal-body"><div class="row g-3"><div class="col-md-6"><small class="text-muted">Remitente</small><div data-fill="nombre"></div></div><div class="col-md-6"><small class="text-muted">Fecha de gestión</small><div data-fill="gestionado"></div></div>
+  <div class="col-md-6"><small class="text-muted">Correo</small><div data-fill="correo"></div></div><div class="col-md-6"><small class="text-muted">Administrador que lo gestionó</small><div data-fill="admin"></div></div>
+  <div class="col-md-6"><small class="text-muted">Fecha de envío</small><div data-fill="enviado"></div></div><div class="col-md-6"><small class="text-muted">Estado</small><div data-fill="estado"></div></div>
+  <div class="col-12"><small class="text-muted">Contenido del mensaje</small><div class="border rounded p-3 bg-light" style="white-space:pre-wrap" data-fill="contenido"></div></div></div></div>
+ <div class="modal-footer justify-content-between"><button class="btn btn-outline-success" data-bs-dismiss="modal">Cerrar</button><button class="btn btn-pirque" data-post-attr="toggle" data-post=""><i class="bi bi-arrow-repeat me-1"></i><span data-fill="accion"></span></button></div>
+</div></div></div>{% endblock %}

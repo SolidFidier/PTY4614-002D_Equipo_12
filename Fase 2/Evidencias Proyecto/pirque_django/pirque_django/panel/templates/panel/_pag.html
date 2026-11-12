@@ -1,0 +1,2 @@
+<div class="d-flex justify-content-between align-items-center mt-3"><small class="text-muted">{% if page %}Mostrando {{ page.start_index }}–{{ page.end_index }} de {{ page.paginator.count }}{% endif %}</small>
+<ul class="pagination pagination-sm mb-0">{% for n in page.paginator.page_range %}<li class="page-item {% if n == page.number %}active{% endif %}"><a class="page-link" href="?{{ qs }}&page={{ n }}">{{ n }}</a></li>{% endfor %}</ul></div>

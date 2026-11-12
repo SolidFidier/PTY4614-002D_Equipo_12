@@ -1,0 +1,102 @@
+{% extends "panel/base.html" %}
+{% block content %}
+<!-- 1. Lo que necesita atención hoy -->
+<div class="tarjeta mb-3">
+  <h2 class="h4 mb-3"><i class="bi bi-bell me-2"></i>Qué necesita tu atención hoy</h2>
+  {% if tareas.reservas or tareas.mensajes %}
+  <div class="row g-3">
+    {% if tareas.reservas %}
+    <div class="col-md-6"><a class="tarea" href="{% url 'panel:reservas_pendientes' %}">
+      <span class="num">{{ tareas.reservas }}</span>
+      <span class="flex-grow-1"><b>Reserva{{ tareas.reservas|pluralize }} por responder</b>{% if tareas.nuevas %}<br><span class="text-danger fw-bold">{{ tareas.nuevas }} nueva{{ tareas.nuevas|pluralize }} sin revisar</span>{% endif %}</span>
+      <i class="bi bi-chevron-right fs-3"></i></a></div>
+    {% endif %}
+    {% if tareas.mensajes %}
+    <div class="col-md-6"><a class="tarea" href="{% url 'panel:mensajes' %}?estado=pendiente">
+      <span class="num">{{ tareas.mensajes }}</span>
+      <span class="flex-grow-1"><b>Mensaje{{ tareas.mensajes|pluralize }} sin responder</b><br>Escritos desde la página de contacto</span>
+      <i class="bi bi-chevron-right fs-3"></i></a></div>
+    {% endif %}
+  </div>
+  {% else %}<p class="mb-0 fs-5">✅ Todo al día: no hay reservas ni mensajes pendientes.</p>{% endif %}
+</div>
+
+<div class="row g-3">
+ <div class="col-xl-9">
+  <div class="row g-3 mb-3">
+   <div class="col-md-4"><div class="tarjeta kpi h-100"><div class="text-muted">¿Hay un grupo hospedado hoy?</div><div class="si mt-2 {% if not act %}no{% endif %}">{% if act %}SÍ{% else %}NO{% endif %}</div></div></div>
+   <div class="col-md-4"><div class="tarjeta kpi h-100"><div class="text-muted">Grupo hospedado ahora</div>
+     {% if act %}<div class="fw-bold fs-4">{{ act.nombre }} {{ act.apellido }}</div><span class="text-muted">{{ act.personas }} persona{{ act.personas|pluralize }} · sale el {{ act.fecha_salida|date:"j \d\e F" }}</span>{% else %}<div class="v">—</div>{% endif %}</div></div>
+   <div class="col-md-4"><div class="tarjeta kpi h-100"><div class="text-muted">Clientes registrados</div><div class="v">{{ n_clientes }}</div>
+     <a href="{% url 'panel:clientes' %}">Ver clientes</a></div></div>
+  </div>
+
+  <!-- 3. Ingresos: Este mes / Este año -->
+  <div class="tarjeta mb-3" id="cardIngresos">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h2 class="h4 mb-0"><i class="bi bi-cash-coin me-2"></i>Ingresos</h2>
+      <div class="btn-group" role="group" aria-label="Elegir el período de los ingresos">
+        <button type="button" class="btn btn-pirque" data-periodo="mes">Este mes</button>
+        <button type="button" class="btn btn-outline-success" data-periodo="anio">Este año</button>
+      </div>
+    </div>
+    {% for clave, p in ingresos.items %}
+    <div class="ing-bloque {% if clave != 'mes' %}d-none{% endif %}" data-bloque="{{ clave }}">
+      <div class="text-muted">Dinero ya pagado en {{ p.etiqueta }}</div>
+      <div class="ing-grande">{{ p.pagado }}</div>
+      {% if p.var is not None %}<div class="fw-bold {% if p.var >= 0 %}text-success{% else %}text-danger{% endif %}">{% if p.var >= 0 %}▲{% else %}▼{% endif %} {{ p.abs_var }}% {% if p.var >= 0 %}más{% else %}menos{% endif %} que {{ p.comparado_con }}</div>{% endif %}
+      <hr>
+      <div class="row g-3">
+        <div class="col-sm-6"><div class="ing-mini"><b>{{ p.n_pag }}</b> reserva{{ p.n_pag|pluralize }} pagada{{ p.n_pag|pluralize }} por completo</div></div>
+        <div class="col-sm-6"><div class="ing-mini">Falta por cobrar: <b>{{ p.cobrar }}</b><br><span class="text-muted">({{ p.n_cobrar }} reserva{{ p.n_cobrar|pluralize }} con pago pendiente o abonado)</span></div></div>
+      </div>
+    </div>
+    {% endfor %}
+    <p class="text-muted mt-3 mb-0">Se suma el valor de las reservas marcadas como «Pagado», según su fecha de entrada. No se cuentan las canceladas.</p>
+  </div>
+
+  <div class="tarjeta mb-3"><div class="d-flex justify-content-between flex-wrap gap-2 mb-2"><b class="fs-5"><i class="bi bi-graph-up me-2"></i>Ocupación (noches con reserva aceptada)</b>
+    <div class="d-flex gap-2"><select id="selAnio" class="form-select">{% for a in anios %}<option value="{{ a }}" {% if a == anio_actual %}selected{% endif %}>{% if a == anio_actual %}Año actual{% else %}{{ a }}{% endif %}</option>{% endfor %}</select>
+    <select id="selModo" class="form-select"><option value="meses">Por meses</option><option value="anios">Por años</option></select></div></div>
+    <canvas id="grafico" height="110"></canvas></div>
+
+  <div class="tarjeta"><div class="d-flex justify-content-between mb-2"><b class="fs-5">Próximas reservas</b><a href="{% url 'panel:reservas' %}">Ver todas</a></div>
+   <div class="table-responsive"><table class="table tabla"><thead><tr><th>Llegada</th><th>Salida</th><th>Huésped</th><th>Estado de la reserva</th><th>Estado del pago</th></tr></thead><tbody>
+   {% for r in prox %}<tr><td>{{ r.fecha_entrada|date:"j M Y" }}</td><td>{{ r.fecha_salida|date:"j M Y" }}</td><td>{{ r.nombre }} {{ r.apellido }}<br><span class="text-muted">{{ r.personas }} persona{{ r.personas|pluralize }}</span></td>
+   <td><span class="badge-e e-{{ r.estado_reserva }}">{{ r.estado_reserva|capfirst }}</span></td><td><span class="badge-e e-{{ r.estado_pago }}">{{ r.estado_pago|capfirst }}</span></td></tr>
+   {% empty %}<tr><td colspan="5" class="text-center text-muted">No hay reservas próximas.</td></tr>{% endfor %}</tbody></table></div></div>
+ </div>
+ <div class="col-xl-3">
+  <div class="tarjeta mb-3"><b class="fs-5"><i class="bi bi-clock me-2"></i>Lo último que pasó</b>
+   {% for f, t, s, ic in eventos %}<div class="d-flex gap-2 mt-3"><i class="bi {{ ic }} fs-4 text-success"></i><div class="flex-grow-1"><b class="d-block">{{ t }}</b><span class="text-muted">{{ s }}</span></div><span class="text-muted">{{ f|date:"d/m H:i" }}</span></div>
+   {% empty %}<p class="text-muted mt-3 mb-0">Todavía no hay actividad.</p>{% endfor %}</div>
+  <div class="tarjeta"><b class="fs-5"><i class="bi bi-lightning me-2"></i>Accesos rápidos</b>
+   <a class="btn btn-light w-100 text-start mt-3" href="{% url 'panel:reservas_pendientes' %}"><i class="bi bi-hourglass-split me-2"></i>Reservas pendientes</a>
+   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:mensajes' %}"><i class="bi bi-envelope me-2"></i>Mensajes</a>
+   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:resenas' %}"><i class="bi bi-star me-2"></i>Reseñas</a>
+   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:ayuda' %}"><i class="bi bi-question-circle me-2"></i>Ayuda</a></div>
+ </div>
+</div>{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+// Ingresos: botones «Este mes» / «Este año» (se recuerda la última elección)
+(() => {
+  const card = document.getElementById('cardIngresos'), botones = card.querySelectorAll('[data-periodo]');
+  const mostrar = p => {
+    card.querySelectorAll('[data-bloque]').forEach(b => b.classList.toggle('d-none', b.dataset.bloque !== p));
+    botones.forEach(b => { const on = b.dataset.periodo === p; b.classList.toggle('btn-pirque', on); b.classList.toggle('btn-outline-success', !on); b.setAttribute('aria-pressed', on); });
+    localStorage.setItem('panelIngresos', p);
+  };
+  botones.forEach(b => b.addEventListener('click', () => mostrar(b.dataset.periodo)));
+  mostrar(localStorage.getItem('panelIngresos') === 'anio' ? 'anio' : 'mes');
+})();
+let ch;
+async function dibujar() {
+  const d = await (await fetch(`{% url 'panel:api_ocupacion' %}?modo=${selModo.value}&anio=${selAnio.value}`)).json();
+  selAnio.disabled = selModo.value === 'anios'; ch?.destroy();
+  ch = new Chart(grafico, {type: 'line', data: {labels: d.labels, datasets: [{data: d.data, borderColor: '#1f6b4f', backgroundColor: 'rgba(31,107,79,.15)', fill: true, tension: .3}]},
+    options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true, max: d.max ?? undefined, suggestedMax: d.max ? undefined : Math.max(...d.data, 1) * 1.15}}}});
+}
+selModo.onchange = selAnio.onchange = dibujar; dibujar();
+</script>{% endblock %}
