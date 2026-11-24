@@ -42,10 +42,76 @@ $env:EMAIL_HOST_USER="tu_correo@gmail.com"
 $env:EMAIL_HOST_PASSWORD="contraseña-de-aplicación"   # se crea en la cuenta de Google; no es la contraseña normal
 $env:SITE_URL="https://tudominio.cl"                   # para los enlaces de los correos enviados por comando
 ```
-Avisos a administradores: `NOTIFICAR_A` en `config/settings.py` + usuarios del Django Admin con «Es staff» y correo.
+Avisos a administradores: el correo del hospedaje (Configuraciones avanzadas) o, si se define `NOTIFICAR_A` en el servidor, esas direcciones, + usuarios del Django Admin con «Es staff» y correo.
 
 ## Datos del hospedaje y personalización
-- Teléfono, correo, Instagram y dirección: `SITIO` en `config/settings.py` (el WhatsApp usa `SITIO["whatsapp"]`).
+- **Teléfono, WhatsApp, correo e Instagram:** se cambian desde el panel → *Configuraciones avanzadas* → «Datos de contacto del sitio». Se guardan en la tabla `configuracion`
+  (la crea `python manage.py preparar_bd`) y se ven al instante en el pie de página, la pantalla Contacto, los botones de WhatsApp y los correos a los clientes.
+  Los avisos de mensajes y solicitudes nuevas llegan al correo configurado (salvo que se defina `NOTIFICAR_A` en el servidor).
+  Si no se ha guardado nada, se usan los valores originales de `SITIO` en `config/settings.py`; el botón «Volver a los datos originales» borra lo guardado.
+  El WhatsApp se guarda solo con números y código de país (ej. 56997710934); un móvil chileno de 9 dígitos recibe el 56 automáticamente.
+- Nombre y dirección: `SITIO` en `config/settings.py`.
 - Horario: `HORAS` en `sitio/views.py`. Carrusel de Servicios: cualquier imagen de `static/img/` con «carrusel» en el nombre.
 - Idiomas: textos en las plantillas (`{% t "es" "en" "pt" %}` de `sitio/templatetags/idioma_tags.py`) y `L(es, en, pt)` en Python. El panel siempre está en español.
 - Si aparece «403 CSRF»: el proyecto usa cookies propias (`pirque_csrftoken`, `pirque_sessionid`, `pirque_idioma`); recarga la página (F5) y reintenta.
+
+
+# Cambios al sistema registrados
+
+- Se cambia el formato de la imagen "banoarenavolcanica.png" a .jpg
+- Se corrige la locacion del mapa de la pantalla "Como llegar", ahora si muestra el punto exacto del hospedaje
+- Se corrige el numero de whatsapp y el correo de settings.py, antes estaban contactos personales para hacer pruebas
+- Configuraciones avanzadas del panel: ahora permite cambiar teléfono, WhatsApp, correo e Instagram (tabla nueva `configuracion`; ejecutar `python manage.py preparar_bd`). Los cambios se reflejan en el sitio público, en los enlaces de WhatsApp y en los correos
+- Pruebas: nuevas P81 a P93, S16 a S18 y R11; las pruebas P36, P37 y P38 ahora leen el número vigente en lugar de settings.py; `actualizar_plan.py` agrega al Excel las filas de pruebas nuevas
+
+Se realizaron pruebas automatizadas de funciones, seguridad, compatibilidad y rendimiento.
+
+Se registra resultados en excel plan de pruebas
+de forma automatica ejecutando `python actualizar_plan.py Plan_de_pruebas.xlsx`
+(debe estar el archivo excel en la carpeta raiz del proyecto para poder actualizar el resultado obtenido
+y el estado) 
+
+# Pruebas
+- Funciones: 93 pruebas (P81 a P93: configuración de datos de contacto)
+- Seguridad: 18 pruebas (S16 a S18: configuración)
+- Compatibilidad: 16 pruebas
+- Rendimiento: 11 pruebas (R11: consulta de configuración)
+
+- Pruebas que requieren intervencion manual: 2 (P58, S15)
+- Pruebas manuales: 13 (P39, P93, R10 y C7 hasta C16)
+- Pruebas automatizadas: 125
+- Pruebas que fallaron: 2 (R9 y C3)
+- Pruebas pendientes: 3 (S15, C10, C16)
+
+`Para poder ejecutar la prueba S15 se requiere:`
+
+Ejecutar en la terminal:
+1. `Obtener clave secreta temporal` `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
+2. `Definir variables`
+- $env:DJANGO_SECRET_KEY = 'la_clave_que_se_genero'
+- $env:DJANGO_DEBUG = '0'
+- $env:DJANGO_ALLOWED_HOSTS = '127.0.0.1,localhost'
+3. `Ejecutar revision de seguridad` > `python manage.py check --deploy`
+
+Para ejecutar pruebas automaticas insertar el siguiente script en la terminal con el entorno virtual activo
+- `python manage.py test panel --testrunner=panel.test_runner.PlanRunner`
+
+## Nota
+Para probar el sitio desde un dispositivo movil
+se requiere agregar al settings.py:
+
+- Agregar al archivo: CSRF_TRUSTED_ORIGINS = ['http://direccion_IP:8000']
+- Iniciar el la pagina como `python manage.py runserver 0.0.0.0:8000`
+
+## Obtener el diagrama de clases
+
+Para obtener el diagrama de clases se utilizo graphviz y se uso los siguientes comandos
+
+`pip install django-extensions pydot`
+`winget install graphviz` 
+`dot -V`
+`python manage.py graph_models panel -o modelos.png`
+
+Y se agrego a INSTALLED_APPS en settings.py: `django_extensions`
+
+Una vez obtenido el diagrama se le cambio el nombre a Vista logica - Diagrama de clases

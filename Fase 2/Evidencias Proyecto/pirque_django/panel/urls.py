@@ -34,4 +34,6 @@ urlpatterns = [
     path("reportes/pdf/", v.reporte_pdf, name="reporte_pdf"),
     path("ayuda/", v.ayuda, name="ayuda"),
     path("configuracion/", v.configuracion, name="configuracion"),
+    path("api/configuracion/guardar/", v.configuracion_guardar, name="configuracion_guardar"),
+    path("api/configuracion/restaurar/", v.configuracion_restaurar, name="configuracion_restaurar"),
 ]

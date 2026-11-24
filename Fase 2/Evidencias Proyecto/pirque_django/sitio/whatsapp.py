@@ -1,14 +1,15 @@
 """Mensajes prearmados que se envían por WhatsApp (el cliente puede editarlos antes de enviar).
 Usan el formato de WhatsApp: *negrita*, saltos de línea y emojis. No incluyen el RUT/DNI; sí el número de reserva."""
 from urllib.parse import quote
-from django.conf import settings
+from .datos import datos_sitio
 from .idioma import L
 
 
-def enlace(texto):
+def enlace(texto, numero=None):
+    """numero: WhatsApp de destino (si se omite se lee el vigente; al armar varios enlaces seguidos conviene pasarlo para no repetir la consulta)."""
     # Se usa api.whatsapp.com y NO wa.me: wa.me redirige a api.whatsapp.com y, en esa redirección, los emojis
     # llegan al chat convertidos en «�». Con este enlace directo los emojis se conservan.
-    return f"https://api.whatsapp.com/send/?phone={settings.SITIO['whatsapp']}&text={quote(texto, safe='')}"
+    return f"https://api.whatsapp.com/send/?phone={numero or datos_sitio()['whatsapp']}&text={quote(texto, safe='')}"
 
 
 def _limpio(texto):
@@ -28,7 +29,7 @@ def _personas(adultos, ninos):
     return es, en, pt
 
 
-def solicitud(r):
+def solicitud(r, numero=None):
     nombre = _limpio(f"{r.nombre} {r.apellido}")
     e, s = f"{r.fecha_entrada:%d/%m/%Y}", f"{r.fecha_salida:%d/%m/%Y}"
     n_es, n_en, n_pt = _noches(r.noches)
@@ -57,10 +58,10 @@ def solicitud(r):
         f"👥 *Hóspedes:* {p_pt}\n"
         f"✉️ *E-mail:* {r.correo}\n\n"
         f"🔖 *Solicitação nº {r.id}*\n\n"
-        f"Obrigado(a)! Aguardo sua resposta 🙏"))
+        f"Obrigado(a)! Aguardo sua resposta 🙏"), numero)
 
 
-def cancelacion(r):
+def cancelacion(r, numero=None):
     nombre = _limpio(f"{r.nombre} {r.apellido}")
     e, s = f"{r.fecha_entrada:%d/%m/%Y}", f"{r.fecha_salida:%d/%m/%Y}"
     return enlace(L(
@@ -78,4 +79,4 @@ def cancelacion(r):
         f"Infelizmente preciso *cancelar* minha reserva 😔\n\n"
         f"🔖 *Reserva nº {r.id}*\n"
         f"📅 {e} → {s}\n\n"
-        f"Muito obrigado(a) pela compreensão 🙏"))
+        f"Muito obrigado(a) pela compreensão 🙏"), numero)

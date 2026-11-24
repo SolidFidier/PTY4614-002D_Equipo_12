@@ -15,6 +15,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "sitio",
     "panel",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -26,6 +27,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -83,14 +85,15 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Datos del hospedaje (usados en las plantillas y en los correos)
+# Datos del hospedaje (usados en las plantillas y en los correos). telefono, whatsapp, email e instagram son los valores
+# ORIGINALES: la administradora puede cambiarlos desde Panel → Configuraciones avanzadas (se guardan en la BD y tienen prioridad).
 SITIO = {
     "nombre": "Hospedaje Rural Pirque",
     "direccion": "Parque real 8 b - Pirque - Chile",
     "telefono": "+569 9771 0934",
-    "whatsapp": "56931447377",
-    "email": "martin.ponce579@gmail.com",
-    "instagram": "hospedajeruralpirque",
+    "whatsapp": "56997710934",
+    "email": "alojamientopirque@gmail.com",
+    "instagram": "hospedajepirque",
 }
 
 MEDIA_URL = "media/"
@@ -118,8 +121,10 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", f'{SITIO["nombre"]} <{EMAIL_HOST_USER or SITIO["email"]}>')
-# Avisos de mensajes y cancelaciones: estas direcciones + los usuarios del Django Admin con "Es staff" y correo.
-NOTIFICAR_A = [e.strip() for e in os.getenv("NOTIFICAR_A", SITIO["email"]).split(",") if e.strip()]
+# Avisos de mensajes y solicitudes: llegan al correo del hospedaje (el de Panel → Configuraciones avanzadas) y a los
+# usuarios del Django Admin con "Es staff" y correo. Si defines NOTIFICAR_A (direcciones separadas por coma), esas
+# direcciones reemplazan al correo del hospedaje.
+NOTIFICAR_A = [e.strip() for e in os.getenv("NOTIFICAR_A", "").split(",") if e.strip()]
 
 # ---------------- Reseñas y enlaces ----------------
 # Carpeta con los scripts de la base de datos (preparar_bd y cargar_datos_prueba la usan).

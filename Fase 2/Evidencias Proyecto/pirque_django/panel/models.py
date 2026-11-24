@@ -99,3 +99,13 @@ class Resena(models.Model):
     def estrellas(self): return range(self.calificacion or 0)
     @property
     def vacias(self): return range(5 - (self.calificacion or 0))
+
+
+class Configuracion(models.Model):
+    """Datos de contacto editables desde el panel (una fila por dato: telefono, whatsapp, email, instagram)."""
+    clave = models.CharField(max_length=30, primary_key=True)
+    valor = models.CharField(max_length=200, default="")
+    fecha_cambio = FechaHoraUTC(default=timezone.now)
+    admin_id = models.IntegerField(db_column="FK_admin", null=True)
+    class Meta: managed = False; db_table = "configuracion"
+    def __str__(self): return f"{self.clave} = {self.valor}"

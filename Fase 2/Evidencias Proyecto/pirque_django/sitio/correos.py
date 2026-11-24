@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
+from .datos import datos_sitio
+
 log = logging.getLogger(__name__)
 
 
@@ -20,9 +22,10 @@ def por(idioma, es, en, pt):
 
 
 def correos_admin():
-    """NOTIFICAR_A (settings) + usuarios activos del Django Admin con «Es staff» y correo."""
+    """Correo del hospedaje (el configurado en el panel) + usuarios activos del Django Admin con «Es staff» y correo.
+    Si se define NOTIFICAR_A en el servidor, esas direcciones reemplazan al correo del hospedaje."""
     staff = get_user_model().objects.filter(is_active=True, is_staff=True).exclude(email="").values_list("email", flat=True)
-    return sorted({e.strip().lower() for e in [*settings.NOTIFICAR_A, *staff] if e and e.strip()})
+    return sorted({e.strip().lower() for e in [*(settings.NOTIFICAR_A or [datos_sitio()['email']]), *staff] if e and e.strip()})
 
 
 def enviar(asunto, cuerpo, destinatarios, reply_to=None):
@@ -38,7 +41,7 @@ def enviar(asunto, cuerpo, destinatarios, reply_to=None):
 
 
 def _firma():
-    s = settings.SITIO
+    s = datos_sitio()
     return f"\n\n{s['nombre']}\n{s['direccion']}\nWhatsApp: {s['telefono']} · {s['email']}"
 
 

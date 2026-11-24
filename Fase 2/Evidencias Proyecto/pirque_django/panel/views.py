@@ -2,10 +2,10 @@ import re
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import F, Max, Min, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,8 +13,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from sitio import correos
+from sitio.datos import CLAVES, NORMALIZADORES, datos_sitio, valores_guardados, valores_originales
 from . import servicios
-from .models import ESTADOS_PAGO, ESTADOS_RESERVA, Cliente, Mensaje, Reserva, Resena
+from .models import ESTADOS_PAGO, ESTADOS_RESERVA, Cliente, Configuracion, Mensaje, Reserva, Resena
 
 ESTADOS_R = [e for e, _ in ESTADOS_RESERVA]
 ESTADOS_P = [e for e, _ in ESTADOS_PAGO]
@@ -569,6 +570,61 @@ def ayuda(request):
     return render(request, "panel/ayuda.html")
 
 
+# ---------- Configuraciones avanzadas: datos de contacto que se ven en el sitio público ----------
+ETIQUETAS_CONFIG = {"telefono": "el teléfono", "whatsapp": "el WhatsApp", "email": "el correo", "instagram": "el Instagram"}
+SIN_TABLA = "No se pudo guardar porque falta la tabla de configuración. Ejecuta en la terminal: python manage.py preparar_bd"
+
+
+def _ultimo_cambio():
+    """(fecha, usuario) del último cambio de datos de contacto, o None si nunca se han cambiado."""
+    try:
+        with transaction.atomic():
+            c = Configuracion.objects.filter(clave__in=CLAVES).order_by("-fecha_cambio").first()
+    except DatabaseError:
+        return None
+    if not c: return None
+    usuario = get_user_model().objects.filter(pk=c.admin_id).values_list("username", flat=True).first() if c.admin_id else None
+    return {"fecha": c.fecha_cambio, "usuario": usuario}
+
+
 @panel
 def configuracion(request):
-    return render(request, "panel/configuracion.html")
+    return render(request, "panel/configuracion.html", {
+        "datos": datos_sitio(), "originales": valores_originales(), "personalizado": bool(valores_guardados()),
+        "ultimo": _ultimo_cambio()})
+
+
+@panel
+@require_POST
+def configuracion_guardar(request):
+    """Valida los cuatro datos (todo o nada) y guarda solo los que cambiaron."""
+    nuevos, errores = {}, []
+    for clave, normalizar in NORMALIZADORES.items():
+        try: nuevos[clave] = normalizar(request.POST.get(clave, ""))
+        except ValueError as e: errores.append(str(e))
+    if errores: return err(" · ".join(errores))
+    actuales = datos_sitio()
+    cambios = {c: v for c, v in nuevos.items() if v != actuales[c]}
+    if not cambios:
+        return JsonResponse({"ok": True, "aviso": "No había nada que cambiar: los datos ya estaban así."})
+    try:
+        with transaction.atomic():
+            for clave, valor in cambios.items():
+                Configuracion.objects.update_or_create(clave=clave, defaults={"valor": valor, "fecha_cambio": timezone.now(),
+                                                                              "admin_id": request.user.pk})
+    except DatabaseError:
+        return err(SIN_TABLA)
+    nombres = ", ".join(ETIQUETAS_CONFIG[c] for c in cambios)
+    return JsonResponse({"ok": True, "aviso": f"Listo: se actualizó {nombres}. Ya se ve en el sitio."})
+
+
+@panel
+@require_POST
+def configuracion_restaurar(request):
+    """Borra lo guardado: el sitio vuelve a usar los datos originales de settings.py."""
+    try:
+        with transaction.atomic():
+            n = Configuracion.objects.filter(clave__in=CLAVES).delete()[0]
+    except DatabaseError:
+        return err(SIN_TABLA)
+    return JsonResponse({"ok": True, "aviso": "Se restauraron los datos originales." if n else "Ya estaban los datos originales."})

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h2 class="h5 mb-0"><i class="bi bi-star me-2"></i>Reseñas de los huéspedes</h2>
  <button class="btn btn-pirque" data-post="{% url 'panel:resenas_enviar' %}" data-msg="Se enviará la invitación de reseña a las estadías terminadas que aún no la recibieron. ¿Continuar?"><i class="bi bi-envelope-heart me-1"></i>Enviar invitaciones pendientes{% if n_por_enviar %} ({{ n_por_enviar }}){% endif %}</button></div>
-<p class="small text-muted">Las invitaciones se envían solas al terminar la estadía (al abrir el panel o con <code>python manage.py enviar_resenas</code>). El enlace es personal, de un solo uso y vence a los 60 días.
+<p class="small text-muted">Las invitaciones se envían solas al terminar la estadía. El enlace es personal, de un solo uso y vence a los 60 días.
 Una reseña <b>no se muestra</b> en el inicio hasta que la marques como <b>visible</b>. Visibles ahora: <b>{{ n_visibles }}</b> · Sin responder: <b>{{ n_sin_responder }}</b>.</p>
 <form class="mb-3"><select name="estado" class="form-select w-auto" onchange="this.form.submit()">
  <option value="">Todas</option><option value="respondidas" {% if est == 'respondidas' %}selected{% endif %}>Respondidas</option><option value="visibles" {% if est == 'visibles' %}selected{% endif %}>Visibles en el sitio</option>

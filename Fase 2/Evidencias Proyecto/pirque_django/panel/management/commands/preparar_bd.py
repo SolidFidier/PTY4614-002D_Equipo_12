@@ -17,6 +17,6 @@ class Command(BaseCommand):
                 c.execute(ruta.read_text(encoding="utf-8"))
                 self.stdout.write(f"  ejecutado: {ruta.name}")
             c.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' "
-                      "AND table_name IN ('clientes', 'reservas', 'mensajes', 'resenas') ORDER BY 1")
+                      "AND table_name IN ('clientes', 'reservas', 'mensajes', 'resenas', 'configuracion') ORDER BY 1")
             self.stdout.write("Tablas del hospedaje: " + ", ".join(r[0] for r in c.fetchall()))
         self.stdout.write(self.style.SUCCESS("Base de datos lista. Siguiente: python manage.py migrate"))

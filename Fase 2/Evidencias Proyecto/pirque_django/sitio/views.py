@@ -16,6 +16,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from panel.models import Cliente, Reserva, Mensaje, Resena
 from . import correos, whatsapp
+from .datos import datos_sitio
 from .forms import ClienteLoginForm, MensajeForm, ReservaForm
 from .idioma import L, idioma
 
@@ -154,11 +155,12 @@ def mis_reservas(request):
     hu = request.session["huesped"]   # deben coincidir el documento y el correo con los de la reserva
     lista = list(Reserva.objects.filter(cliente_id=hu["documento"], correo__iexact=hu["correo"]).order_by("-fecha_entrada"))
     hoy = timezone.localdate()
+    numero = datos_sitio()["whatsapp"]   # una sola consulta para todos los botones «Cancelar por WhatsApp»
     for r in lista:
         t = ESTADOS[r.seccion]
         r.etiqueta, r.color = t[{"es": 0, "en": 1, "pt": 2}[idioma()]], t[3]
         r.puede_cancelar = r.estado_reserva in ("pendiente", "aceptada") and r.fecha_salida >= hoy
-        r.wa_cancelar = whatsapp.cancelacion(r) if r.puede_cancelar else ""
+        r.wa_cancelar = whatsapp.cancelacion(r, numero) if r.puede_cancelar else ""
     return render(request, "sitio/mis_reservas.html", {"reservas": lista})
 
 

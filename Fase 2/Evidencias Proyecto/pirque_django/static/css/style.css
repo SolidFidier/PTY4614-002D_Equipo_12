@@ -67,7 +67,6 @@ h1,h2,h3,.serif,.horario,.lead-serif,.lista-hab{font-family:'Merriweather',serif
 .form-control,.form-select{background-color:#fff!important;color:#212529!important;border:1px solid #ced4da!important}
 .form-control::placeholder{color:#8a9097!important}
 .form-control:focus,.form-select:focus{background-color:#fff!important;color:#212529!important;border-color:var(--gold)!important;box-shadow:0 0 0 .2rem rgba(242,182,50,.25)!important}
-
 /* Experiencias: las tres imágenes con el MISMO tamaño */
 .exp-card{overflow:hidden;transition:transform .25s,box-shadow .25s}
 .exp-card:hover,.resena-card:hover{transform:translateY(-5px);box-shadow:0 .9rem 1.8rem rgba(0,0,0,.35)!important}
