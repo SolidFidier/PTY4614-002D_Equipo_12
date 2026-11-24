@@ -60,3 +60,12 @@ CREATE TABLE IF NOT EXISTS resenas (
     nombre_publico   varchar(100)  NOT NULL DEFAULT '',
     visible          boolean       NOT NULL DEFAULT false   -- la administradora elige cuáles se muestran en el inicio
 );
+
+-- Datos de contacto del sitio (teléfono, whatsapp, email, instagram) editables desde Panel → Configuraciones avanzadas.
+-- Si una clave no existe aquí, el sitio usa el valor de SITIO en config/settings.py.
+CREATE TABLE IF NOT EXISTS configuracion (
+    clave         varchar(30)  PRIMARY KEY,            -- telefono | whatsapp | email | instagram
+    valor         varchar(200) NOT NULL DEFAULT '',
+    fecha_cambio  timestamp    NOT NULL DEFAULT now(),
+    "FK_admin"    integer                              -- usuario de Django que hizo el último cambio
+);
