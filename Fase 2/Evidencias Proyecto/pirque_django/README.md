@@ -63,6 +63,14 @@ Avisos a administradores: el correo del hospedaje (Configuraciones avanzadas) o,
 - Se corrige el numero de whatsapp y el correo de settings.py, antes estaban contactos personales para hacer pruebas
 - Configuraciones avanzadas del panel: ahora permite cambiar teléfono, WhatsApp, correo e Instagram (tabla nueva `configuracion`; ejecutar `python manage.py preparar_bd`). Los cambios se reflejan en el sitio público, en los enlaces de WhatsApp y en los correos
 - Pruebas: nuevas P81 a P93, S16 a S18 y R11; las pruebas P36, P37 y P38 ahora leen el número vigente en lugar de settings.py; `actualizar_plan.py` agrega al Excel las filas de pruebas nuevas
+- Recuperación de contraseña del panel (H15): enlace «¿Olvidaste tu contraseña?» en /panel/login/. Llega un correo con un enlace personal que vale 1 hora
+  (`PASSWORD_RESET_TIMEOUT`) y sirve una sola vez; solo para cuentas del personal (is_staff). Código en `panel/recuperar.py`; nueva sección 11 en Ayuda
+- Contraseñas: se agregan las reglas estándar de Django (`AUTH_PASSWORD_VALIDATORS`): mínimo 8 caracteres, no comunes, no solo números y no parecidas al usuario
+- Panel en celular: el menú lateral se abre con el botón ☰ (barra superior), las ventanas de reservas, clientes y mensajes ocupan toda la pantalla y el login
+  muestra el logo en una franja. Estilos en `panel/static/panel/css/movil.css` (en computador el panel se ve igual)
+- Calendario de reserva (sitio y panel): se oculta el campo de texto que flatpickr dejaba visible sobre el calendario; en celular el calendario ocupa el
+  ancho de la tarjeta y los círculos rojos de las fechas ocupadas ya no se tocan (`static/css/style.css`)
+- Pruebas: nuevas P94 a P97 y S19 a S23 (recuperación de contraseña)
 
 Se realizaron pruebas automatizadas de funciones, seguridad, compatibilidad y rendimiento.
 
@@ -72,8 +80,8 @@ de forma automatica ejecutando `python actualizar_plan.py Plan_de_pruebas.xlsx`
 y el estado) 
 
 # Pruebas
-- Funciones: 93 pruebas (P81 a P93: configuración de datos de contacto)
-- Seguridad: 18 pruebas (S16 a S18: configuración)
+- Funciones: 97 pruebas (P81 a P93: configuración de datos de contacto; P94 a P97: recuperación de contraseña)
+- Seguridad: 23 pruebas (S16 a S18: configuración; S19 a S23: recuperación de contraseña)
 - Compatibilidad: 16 pruebas
 - Rendimiento: 11 pruebas (R11: consulta de configuración)
 

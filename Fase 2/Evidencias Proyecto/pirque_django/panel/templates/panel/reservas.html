@@ -14,7 +14,7 @@
 <form class="d-flex flex-wrap gap-2 mb-3"><input name="q" value="{{ q }}" class="form-control" style="max-width:360px" placeholder="Buscar por nombre, RUT o número de reserva">
  <select name="pago" class="form-select w-auto" onchange="this.form.submit()"><option value="">Todos los pagos</option>{% for v, t in estados_pago %}<option value="{{ v }}" {% if v == pago %}selected{% endif %}>Pago: {{ t }}</option>{% endfor %}</select>
  <select name="fecha" class="form-select w-auto" onchange="this.form.submit()"><option value="">Todas las fechas</option><option value="mes" {% if f == 'mes' %}selected{% endif %}>Entrada este mes</option></select>
- <label for="selOrden" class="fw-bold align-self-center mb-0">Ordenar:</label><select id="selOrden" name="orden" class="form-select w-auto" style="min-width:19rem" onchange="this.form.submit()">{% for k, nombre in ordenes.items %}<option value="{{ k }}" {% if k == orden %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select>
+ <label for="selOrden" class="fw-bold align-self-center mb-0">Ordenar:</label><select id="selOrden" name="orden" class="form-select w-auto sel-orden" onchange="this.form.submit()">{% for k, nombre in ordenes.items %}<option value="{{ k }}" {% if k == orden %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select>
  <button class="btn btn-outline-success"><i class="bi bi-search"></i> Buscar</button></form>
 
 <div id="listaReservas" class="tarjeta"><div class="table-responsive"><table class="table tabla"><thead><tr><th>Reserva</th><th>Huésped</th><th>Estadía</th><th>Valor</th><th>Estado de la reserva</th><th>Estado del pago</th>{% if seccion == 'terminadas' %}<th>Reseña</th>{% endif %}<th>Qué hacer</th></tr></thead><tbody>
@@ -33,13 +33,13 @@
 <button class="btn btn-sm btn-outline-danger" data-delete="{% url 'panel:reserva_eliminar' r.id %}" data-msg="¿Eliminar la reserva #{{ r.id }} de {{ r.nombre }} {{ r.apellido }}?&#10;&#10;Esta acción no se puede deshacer."><i class="bi bi-trash"></i> Eliminar</button></div></td></tr>
 {% empty %}<tr><td colspan="8" class="text-center text-muted py-4">No hay reservas en esta sección.</td></tr>{% endfor %}</tbody></table></div>{% include "panel/_pag.html" %}</div>
 
-<div class="modal fade" id="mdNueva" tabindex="-1"><div class="modal-dialog modal-lg"><form class="modal-content" data-ajax action="{% url 'panel:reserva_crear' %}">{% csrf_token %}
+<div class="modal fade" id="mdNueva" tabindex="-1"><div class="modal-dialog modal-lg modal-fullscreen-sm-down"><form class="modal-content" data-ajax action="{% url 'panel:reserva_crear' %}">{% csrf_token %}
  <div class="modal-header"><h5 class="modal-title">Nueva reserva</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
  <div class="modal-body">{% include "panel/_form_reserva.html" with prefijo="n" defecto_reserva="aceptada" %}
   <p class="text-muted mt-3 mb-0">Si el cliente no existe se crea; si existe, se actualizan sus datos. Las reservas que hacen los clientes desde el sitio llegan como <b>pendientes</b>.</p></div>
  <div class="modal-footer"><button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-pirque"><i class="bi bi-check-lg"></i> Guardar reserva</button></div></form></div></div>
 
-<div class="modal fade" id="mdEditar" tabindex="-1"><div class="modal-dialog modal-lg"><form class="modal-content" data-ajax>{% csrf_token %}
+<div class="modal fade" id="mdEditar" tabindex="-1"><div class="modal-dialog modal-lg modal-fullscreen-sm-down"><form class="modal-content" data-ajax>{% csrf_token %}
  <div class="modal-header"><h5 class="modal-title">Ver o modificar la reserva</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
  <div class="modal-body">{% include "panel/_form_reserva.html" with prefijo="e" defecto_reserva="pendiente" %}</div>
  <div class="modal-footer"><button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cerrar sin cambios</button><button class="btn btn-pirque"><i class="bi bi-check-lg"></i> Guardar cambios</button></div></form></div></div>

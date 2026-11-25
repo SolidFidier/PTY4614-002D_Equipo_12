@@ -56,13 +56,13 @@ document.addEventListener('submit', async e => {         // formularios AJAX de 
 // Burbujas del menú (mensajes sin gestionar y reservas pendientes): se actualizan solas cada 20 segundos
 // y desaparecen cuando llegan a cero.
 (() => {
-  const bm = document.getElementById('badgeMensajes'), br = document.getElementById('badgeReservas'), bg = document.getElementById('badgeReservasGrupo');
+  const bm = document.getElementById('badgeMensajes'), br = document.getElementById('badgeReservas'), bg = document.getElementById('badgeReservasGrupo'), bmov = document.getElementById('badgeMovil');
   if (!bm) return;
   const pintar = (b, n) => { if (b) { b.textContent = n; b.classList.toggle('d-none', !n); } };
   const actualizar = async () => {
     try {
       const j = await (await fetch(bm.dataset.url, {headers: {'X-Requested-With': 'fetch'}})).json();
-      pintar(bm, j.pendientes); pintar(br, j.reservas); pintar(bg, j.reservas);
+      pintar(bm, j.pendientes); pintar(br, j.reservas); pintar(bg, j.reservas); pintar(bmov, j.reservas);
     } catch {}
   };
   setInterval(actualizar, 20000);

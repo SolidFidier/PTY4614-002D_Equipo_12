@@ -1,7 +1,9 @@
-"""Pruebas de seguridad básica (S1 a S18) de la hoja «Seguridad» del Plan de pruebas."""
+"""Pruebas de seguridad básica (S1 a S23) de la hoja «Seguridad» del Plan de pruebas."""
 from pathlib import Path
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
@@ -200,3 +202,62 @@ class Seguridad(Base):
         self.assertNotIn("onerror=", pagina)
         self.obt(f"Se rechazaron {len(ataques)} intentos con código HTML/JavaScript o SQL en los campos de contacto; no se guardó nada y el sitio no contiene "
                  "ese código.")
+
+    # ---------- Recuperación de contraseña del panel (H15) ----------
+    def _pedir_enlace(self, correo="admin@pirque.cl"):
+        return Client().post(reverse("panel:recuperar"), {"email": correo})
+
+    def _enlace(self):
+        import re
+        return re.search(r"https?://[^/\s]+(/\S+)", mail.outbox[-1].body).group(1)
+
+    def test_S19_recuperar_con_correo_no_registrado(self):
+        r1 = self._pedir_enlace("nadie@ejemplo.cl")
+        self.assertRedirects(r1, reverse("panel:recuperar_enviado"))
+        self.assertEqual(len(mail.outbox), 0)
+        r2 = self._pedir_enlace()
+        self.assertEqual(r1["Location"], r2["Location"])
+        self.obt("Con un correo que no existe se mostró la misma pantalla «Revisa tu correo» que con uno registrado y no se envió ningún "
+                 "correo: no se puede averiguar qué cuentas existen.")
+
+    def test_S20_recuperar_solo_para_cuentas_del_personal(self):
+        get_user_model().objects.create_user("cliente", "cliente@ejemplo.cl", "Otra.Clave2026", is_staff=False)
+        self._pedir_enlace("cliente@ejemplo.cl")
+        self.assertEqual(len(mail.outbox), 0)
+        self.obt("Un usuario activo que no es del personal (is_staff = falso) pidió recuperar su contraseña y no se le envió el enlace.")
+
+    def test_S21_contrasena_nueva_debil(self):
+        self._pedir_enlace()
+        c = Client()
+        url = c.get(self._enlace(), follow=True).redirect_chain[-1][0]
+        r = c.post(url, {"new_password1": "12345678", "new_password2": "12345678"})
+        self.assertEqual(r.status_code, 200)
+        errores = " ".join(r.context["form"].errors.get("new_password2", []))
+        self.assertTrue(errores)
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.check_password(CLAVE))
+        self.obt(f"La contraseña «12345678» fue rechazada por los validadores de Django («{errores}») y la contraseña no cambió.")
+
+    def test_S22_enlace_de_un_solo_uso(self):
+        self._pedir_enlace()
+        enlace, c = self._enlace(), Client()
+        url = c.get(enlace, follow=True).redirect_chain[-1][0]
+        c.post(url, {"new_password1": "Pirque.Valle2026", "new_password2": "Pirque.Valle2026"})
+        r = Client().get(enlace, follow=True)
+        self.assertContains(r, "El enlace ya no sirve")
+        self.obt("Después de cambiar la contraseña, al abrir de nuevo el mismo enlace se mostró «El enlace ya no sirve» con el botón para "
+                 "pedir uno nuevo.")
+
+    def test_S23_enlace_vence_en_una_hora(self):
+        from datetime import timedelta
+        from unittest import mock
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+        self.assertEqual(settings.PASSWORD_RESET_TIMEOUT, 3600)
+        self._pedir_enlace()
+        enlace = self._enlace()
+        ahora = PasswordResetTokenGenerator()._now()
+        with mock.patch.object(PasswordResetTokenGenerator, "_now", return_value=ahora + timedelta(minutes=61)):
+            r = Client().get(enlace, follow=True)
+        self.assertContains(r, "El enlace ya no sirve")
+        self.obt("Con PASSWORD_RESET_TIMEOUT = 3600, el enlace abierto 61 minutos después mostró «El enlace ya no sirve» y no permitió "
+                 "cambiar la contraseña.")

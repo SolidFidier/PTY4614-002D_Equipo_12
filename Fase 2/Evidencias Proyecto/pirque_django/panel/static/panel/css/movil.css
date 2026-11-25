@@ -1,0 +1,124 @@
+/* =========================================================
+   Panel Hospedaje Rural Pirque – ajustes para celular y tablet
+   Se carga DESPUÉS de panel.css, así que sobrescribe lo necesario.
+   En escritorio (≥ 992 px) el panel se ve igual que antes.
+   ========================================================= */
+
+/* ---------- Barra superior (solo celular/tablet) ---------- */
+.barra-movil {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, .08);
+}
+.barra-movil .burbuja { margin-left: auto; }
+
+/* ---------- Menú lateral como panel deslizable ---------- */
+@media (max-width: 991.98px) {
+  /* panel.css pone el menú en filas en pantallas chicas; aquí vuelve a ser una columna dentro del panel deslizable */
+  .side.offcanvas-lg {
+    position: fixed;
+    width: 280px;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-y: auto;
+  }
+  .side.offcanvas-lg .marca { display: block; }
+  .side .cerrar-menu {
+    align-self: flex-end;
+    margin: .25rem .25rem .5rem 0;
+  }
+
+  /* Encabezado del contenido más compacto */
+  .contenido header h1 { font-size: 1.3rem; }
+}
+
+/* ---------- Tablas y botones ---------- */
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+@media (max-width: 575.98px) {
+  .tabla { font-size: .9rem; }
+  .tabla th, .tabla td { white-space: nowrap; }
+  .tabla td .acciones .btn { white-space: nowrap; }
+  .pagination { flex-wrap: wrap; }
+}
+
+/* Selector «Ordenar» de reservas: ancho en escritorio, adaptable en celular */
+.sel-orden { min-width: 19rem; }
+@media (max-width: 575.98px) {
+  .sel-orden { min-width: 0; width: 100% !important; }
+  form .form-control[style*="max-width"] { max-width: 100% !important; }
+}
+
+/* ---------- Login ---------- */
+.login-der { min-height: 100vh; }
+@media (max-width: 991.98px) {
+  .login-der { min-height: auto; }
+  /* panel.css le da al bloque verde del logo la altura de toda la pantalla; en celular se vuelve una franja */
+  .login-izq { min-height: 0; padding: 1.25rem !important; text-align: center; }
+  .login-izq img { height: 56px !important; margin-bottom: .5rem !important; }
+  .login-izq h2 { font-size: 1.4rem; margin-bottom: 0; }
+  .login-izq p { display: none; }
+}
+
+/* =========================================================
+   Calendario de reservas (Flatpickr) dentro del formulario
+   ========================================================= */
+
+/* flatpickr convierte el <input type="hidden" class="cal-reserva"> en un campo de texto; el calendario está siempre a la vista, así que se oculta */
+.modal input.cal-reserva.flatpickr-input { display: none; }
+
+/* El calendario ocupa todo el ancho disponible */
+.modal .flatpickr-calendar.inline {
+  width: 100% !important;
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, .1);
+  border-radius: 12px;
+}
+.modal .flatpickr-calendar.inline .flatpickr-rContainer,
+.modal .flatpickr-calendar.inline .flatpickr-days,
+.modal .flatpickr-calendar.inline .dayContainer {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Cada día es un cuadrado que se adapta al ancho (7 por fila) */
+.modal .flatpickr-calendar.inline .flatpickr-day {
+  flex-basis: 14.2857%;
+  max-width: none;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* Días ocupados: círculo rojo un poco más chico que la celda, sin montarse */
+.modal .flatpickr-calendar.inline .flatpickr-day.flatpickr-disabled:not(.prevMonthDay):not(.nextMonthDay) {
+  width: auto !important;
+  height: auto !important;
+  transform: scale(.86);
+}
+
+@media (max-width: 575.98px) {
+  .modal .flatpickr-calendar.inline { max-width: 100%; }
+  .modal .flatpickr-calendar.inline .flatpickr-day { font-size: .85rem; }
+  .modal .flatpickr-calendar.inline .flatpickr-weekday { font-size: .72rem; }
+  .modal .flatpickr-calendar.inline .flatpickr-current-month { font-size: 1rem; }
+}

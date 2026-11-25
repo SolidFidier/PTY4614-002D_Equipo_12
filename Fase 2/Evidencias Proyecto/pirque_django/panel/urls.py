@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views as v
+from .recuperar import urls_recuperar
 app_name = "panel"
 urlpatterns = [
     path("login/", v.login_view, name="login"),
@@ -36,4 +37,6 @@ urlpatterns = [
     path("configuracion/", v.configuracion, name="configuracion"),
     path("api/configuracion/guardar/", v.configuracion_guardar, name="configuracion_guardar"),
     path("api/configuracion/restaurar/", v.configuracion_restaurar, name="configuracion_restaurar"),
+    # Recuperación de contraseña del panel (H15)
+    *urls_recuperar,
 ]

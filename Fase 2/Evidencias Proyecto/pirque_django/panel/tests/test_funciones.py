@@ -1,4 +1,4 @@
-"""Pruebas funcionales (P1 a P93) de la hoja «Pruebas» del Plan de pruebas.
+"""Pruebas funcionales (P1 a P97) de la hoja «Pruebas» del Plan de pruebas.
 
 Cada método test_PNN_... corresponde a la fila PNN y, al aprobarse, registra el resultado concreto que obtuvo.
 """
@@ -949,3 +949,61 @@ class H14Configuracion(Base):
     def test_P93_whatsapp_real_con_numero_nuevo(self):
         self.manual("cambiar el WhatsApp en Configuraciones avanzadas y pulsar «Abrir WhatsApp» y «Continuar por WhatsApp» desde un celular: "
                     "debe abrir el chat del número nuevo.")
+
+    # ---------- Recuperación de contraseña del panel (H15) ----------
+    def _pedir_enlace(self, correo="admin@pirque.cl"):
+        return Client().post(reverse("panel:recuperar"), {"email": correo})
+
+    def _enlace(self):
+        return re.search(r"https?://[^/\s]+(/\S+)", mail.outbox[-1].body).group(1)
+
+    def _abrir_formulario(self, c):
+        """Abre el enlace del correo; Django redirige a la URL con «set-password». Devuelve esa URL."""
+        r = c.get(self._enlace(), follow=True)
+        self.assertContains(r, "Crea tu nueva contraseña")
+        return r.redirect_chain[-1][0]
+
+    def test_P94_login_muestra_enlace_recuperar(self):
+        r = Client().get(reverse("panel:login"))
+        self.assertContains(r, "¿Olvidaste tu contraseña?")
+        self.assertContains(r, reverse("panel:recuperar"))
+        self.assertEqual(Client().get(reverse("panel:recuperar")).status_code, 200)
+        self.obt(f"La pantalla de inicio de sesión muestra «¿Olvidaste tu contraseña?», que lleva a {reverse('panel:recuperar')} "
+                 "(responde 200 sin sesión).")
+
+    def test_P95_correo_registrado_recibe_enlace(self):
+        r = self._pedir_enlace()
+        self.assertRedirects(r, reverse("panel:recuperar_enviado"))
+        self.assertEqual(len(mail.outbox), 1)
+        m = mail.outbox[0]
+        self.assertEqual(m.to, ["admin@pirque.cl"])
+        self.assertIn("/panel/recuperar/", m.body)
+        self.obt(f"Con el correo admin@pirque.cl se mostró «Revisa tu correo» y llegó 1 correo («{m.subject}») a {m.to[0]} "
+                 f"con el enlace {self._enlace()[:28]}…")
+
+    def test_P96_cambio_de_contrasena_con_enlace_valido(self):
+        nueva = "Pirque.Valle2026"
+        self._pedir_enlace()
+        c = Client()
+        url = self._abrir_formulario(c)
+        r = c.post(url, {"new_password1": nueva, "new_password2": nueva})
+        self.assertRedirects(r, reverse("panel:recuperar_listo"))
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.check_password(nueva))
+        self.assertFalse(self.admin.check_password(CLAVE))
+        r = Client().post(reverse("panel:login"), {"usuario": "admin@pirque.cl", "password": nueva})
+        self.assertRedirects(r, reverse("panel:inicio"), fetch_redirect_response=False)
+        self.obt("Con el enlace del correo se guardó la contraseña nueva, apareció «¡Listo! Tu contraseña cambió», se inició sesión con la "
+                 "contraseña nueva y la anterior dejó de funcionar.")
+
+    def test_P97_contrasenas_que_no_coinciden(self):
+        self._pedir_enlace()
+        c = Client()
+        url = self._abrir_formulario(c)
+        r = c.post(url, {"new_password1": "Pirque.Valle2026", "new_password2": "OtraDistinta.99"})
+        self.assertEqual(r.status_code, 200)
+        error = " ".join(r.context["form"].errors.get("new_password2", []))
+        self.assertTrue(error)
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.check_password(CLAVE))
+        self.obt(f"Con dos contraseñas distintas el formulario mostró «{error}» y la contraseña no cambió.")

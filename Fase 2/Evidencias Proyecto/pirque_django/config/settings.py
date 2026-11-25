@@ -67,6 +67,16 @@ DATABASES = {
 # Permite iniciar sesión en el panel con correo o usuario
 AUTHENTICATION_BACKENDS = ["panel.backends.EmailOUsuario"]
 LOGIN_URL = "panel:login"
+# Recuperación de contraseña del panel: el enlace enviado por correo vence en 1 hora (y sirve una sola vez).
+PASSWORD_RESET_TIMEOUT = 60 * 60
+# Reglas para contraseñas nuevas (recuperación de contraseña, Django Admin y createsuperuser):
+# no parecida al usuario/correo, mínimo 8 caracteres, no una contraseña común y no solo números.
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 LANGUAGE_CODE = "es"
 TIME_ZONE = "America/Santiago"

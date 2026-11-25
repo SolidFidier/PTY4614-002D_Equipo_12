@@ -4,8 +4,8 @@ Uso:  python manage.py test panel --testrunner=panel.test_runner.PlanRunner
       (solo un tipo:  python manage.py test panel.tests.test_seguridad --testrunner=panel.test_runner.PlanRunner)
 
 Archivos de pruebas (carpeta panel/tests/):
-  test_funciones.py       → hoja «Pruebas»         (P1 a P93)
-  test_seguridad.py       → hoja «Seguridad»       (S1 a S18)
+  test_funciones.py       → hoja «Pruebas»         (P1 a P97)
+  test_seguridad.py       → hoja «Seguridad»       (S1 a S23)
   test_rendimiento.py     → hoja «Rendimiento»     (R1 a R11)
   test_compatibilidad.py  → hoja «Compatibilidad»  (C1 a C6; C7 en adelante son manuales)
 

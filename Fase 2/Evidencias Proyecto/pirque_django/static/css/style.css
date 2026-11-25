@@ -118,6 +118,22 @@ h1,h2,h3,.serif,.horario,.lead-serif,.lista-hab{font-family:'Merriweather',serif
 .leyenda-calendario .libre{background:#fff}
 .leyenda-calendario .ocupado{background:#dc3545;border-color:#b02a37}
 .leyenda-calendario .elegido{background:var(--leaf);border-color:var(--leaf)}
+/* Calendario de reserva: flatpickr convierte el <input type="hidden" id="calendario"> en un campo de texto visible;
+   como el calendario está siempre a la vista (inline), ese campo sobra y se oculta. */
+#formReserva input.flatpickr-input{display:none}
+#formReserva .flatpickr-calendar.inline{margin-bottom:1rem}
+/* En celulares (1 mes visible): el calendario ocupa el ancho de la tarjeta y cada día es un cuadrado que se adapta,
+   así los círculos rojos de las fechas ocupadas no se tocan entre sí. En computador (2 meses) se mantiene igual. */
+@media(max-width:767.98px){
+  #formReserva .flatpickr-calendar.inline{width:100%!important;max-width:420px;border-radius:14px}
+  #formReserva .flatpickr-calendar.inline .flatpickr-rContainer,
+  #formReserva .flatpickr-calendar.inline .flatpickr-days,
+  #formReserva .flatpickr-calendar.inline .dayContainer{width:100%!important;min-width:100%!important;max-width:100%!important}
+  #formReserva .flatpickr-calendar.inline .flatpickr-day{flex-basis:14.2857%;max-width:none;height:auto;aspect-ratio:1/1;line-height:normal;
+    display:flex;align-items:center;justify-content:center;margin:0;font-size:.95rem}
+  #formReserva .flatpickr-calendar.inline .flatpickr-day.dia-ocupado{transform:scale(.84)}
+  #formReserva .flatpickr-weekday{font-size:.8rem}
+}
 
 /* Contacto */
 .contacto-iconos a{color:#fff;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:.6rem;font-family:'Merriweather',serif;word-break:break-word}
