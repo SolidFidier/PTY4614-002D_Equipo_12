@@ -40,8 +40,8 @@ h1,h2,h3,.serif,.horario,.lead-serif,.lista-hab{font-family:'Merriweather',serif
 @media(max-width:991px){.menu{border-radius:12px;margin-top:.5rem}}
 
 /* ---------- Botones ---------- */
-.btn-pirque{background:var(--leaf);color:#fff;border:0;border-radius:50px;font-weight:700;padding:.6rem 1.8rem}
-.btn-pirque:hover,.btn-pirque:focus-visible{background:var(--leaf-dark);color:#fff}
+.btn-pirque{background:var(--leaf-dark);color:#fff;border:0;border-radius:50px;font-weight:700;padding:.6rem 1.8rem}
+.btn-pirque:hover,.btn-pirque:focus-visible{background:#45601f;color:#fff}
 .btn-warning{background:linear-gradient(135deg,var(--gold-soft),var(--gold));border:0;color:#2b2208;box-shadow:0 .25rem .8rem rgba(242,182,50,.35);transition:transform .2s,box-shadow .2s}
 .btn-warning:hover,.btn-warning:focus-visible{background:linear-gradient(135deg,#ffe08a,#e8a920);color:#1f1804;transform:translateY(-1px);box-shadow:0 .4rem 1.1rem rgba(242,182,50,.5)}
 .btn-whatsapp{background:#25d366;color:#06361a;border:0;box-shadow:0 .3rem 1rem rgba(37,211,102,.35);transition:transform .2s,box-shadow .2s}
@@ -60,12 +60,12 @@ h1,h2,h3,.serif,.horario,.lead-serif,.lista-hab{font-family:'Merriweather',serif
 .comidas div{font-weight:700;margin-top:.3rem}
 .card.bg-dark{backdrop-filter:blur(4px);border-radius:1rem}
 .card.bg-dark .text-muted,.card.bg-dark small,.card.bg-dark p{color:rgba(255,255,255,.9)!important}
-.card.bg-dark .form-control{background:#fff;color:#212529;border-color:#ced4da}
+.card.bg-dark .form-control{background:#fff;color:#212529;border-color:#6c757d}
 .card.bg-dark .form-control::placeholder{color:#6c757d}
 .card.bg-dark .form-control:focus{background:#fff;color:#212529;border-color:var(--gold);box-shadow:0 0 0 .2rem rgba(242,182,50,.25)}
 /* Campos de formulario en blanco */
-.form-control,.form-select{background-color:#fff!important;color:#212529!important;border:1px solid #ced4da!important}
-.form-control::placeholder{color:#8a9097!important}
+.form-control,.form-select{background-color:#fff!important;color:#212529!important;border:1px solid #6c757d!important}
+.form-control::placeholder{color:#6c757d!important}
 .form-control:focus,.form-select:focus{background-color:#fff!important;color:#212529!important;border-color:var(--gold)!important;box-shadow:0 0 0 .2rem rgba(242,182,50,.25)!important}
 /* Experiencias: las tres imágenes con el MISMO tamaño */
 .exp-card{overflow:hidden;transition:transform .25s,box-shadow .25s}
@@ -155,4 +155,13 @@ form input.form-control,form textarea.form-control{border-radius:0;font-size:1.1
   .pie-grid .social{order:-1}
 }
 
-a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #cfe6a8;outline-offset:2px}
+.link-privacidad{color:inherit;text-decoration:underline}
+.link-privacidad:hover{color:var(--gold-soft)}
+.consentimiento .form-check-input{margin-top:.3rem}
+/* Accesibilidad (WCAG 2.2 AA) */
+/* Mensajes de error legibles sobre el fondo verde (1.4.3: el rojo de Bootstrap no llega a 4.5:1 sobre verde) */
+.section-olive .text-danger,.card.bg-dark .text-danger{color:#ffe5e8!important}
+.section-olive .alert .text-danger{color:#842029!important}
+/* Fechas del calendario escritas a mano (alternativa al calendario para teclado y lectores de pantalla, 2.1.1) */
+.fechas-manual summary{cursor:pointer;text-decoration:underline;display:inline-block;padding:.4rem 0}
+.estrellas-input label .visually-hidden{font-size:1rem}

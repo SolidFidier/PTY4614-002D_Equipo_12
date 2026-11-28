@@ -1,4 +1,4 @@
-:root{--verde:#0f3d2c;--verde2:#1f6b4f;--fondo:#f3f5f0;--borde:#dfe6dc}
+:root{--a11y-base:112.5%;--verde:#0f3d2c;--verde2:#1f6b4f;--fondo:#f3f5f0;--borde:#dfe6dc}
 body{background:var(--fondo);font-family:"Open Sans",system-ui,sans-serif;color:#1c2b24}
 .side{width:270px;min-height:100vh;background:var(--verde);color:#fff;position:sticky;top:0;display:flex;flex-direction:column;padding:1rem .8rem}
 .side a{color:#dbe9e1;text-decoration:none;padding:.55rem .8rem;border-radius:.6rem;display:flex;gap:.7rem;align-items:center;margin-bottom:.2rem}
@@ -11,7 +11,7 @@ body{background:var(--fondo);font-family:"Open Sans",system-ui,sans-serif;color:
 .tabla th{background:#eaf1e6;font-weight:600;font-size:.85rem}.tabla td{vertical-align:middle}
 .badge-e{border-radius:2rem;padding:.25rem .7rem;font-size:.78rem;font-weight:600}
 .e-confirmado,.e-gestionado,.e-disponible,.e-aceptada,.e-pagado{background:#d6f0de;color:#15693a}
-.e-pendiente{background:#fdebc8;color:#9a6200}
+.e-pendiente{background:#fdebc8;color:#7a4d00}
 .e-cancelado,.e-ocupada,.e-cancelada{background:#fbd5d5;color:#b11d1d}
 .e-reembolsado,.e-abonado,.e-terminada{background:#dbe7fb;color:#27508f}
 .btn-pirque{background:var(--verde2);color:#fff;border:0}.btn-pirque:hover{background:var(--verde);color:#fff}
@@ -25,7 +25,7 @@ body{background:var(--fondo);font-family:"Open Sans",system-ui,sans-serif;color:
 
 .side a.sub{padding:.35rem .8rem .35rem 2.1rem;font-size:.88rem;margin-bottom:.1rem}
 .side a.sub i{font-size:.85rem}
-.estrellas-p{color:#e0a800;letter-spacing:.1rem}
+.estrellas-p{color:#8a6100;letter-spacing:.1rem}
 .resumen-chip{background:#eaf1e6;border-radius:2rem;padding:.25rem .8rem;font-size:.85rem}
 .nav-pills .nav-link{color:var(--verde);border-radius:2rem}.nav-pills .nav-link.active{background:var(--verde2)}
 
@@ -78,6 +78,16 @@ small,.small{font-size:.92rem}
 .aviso-fila{margin-top:.4rem;background:#fff3cd;border-left:4px solid #e0a800;padding:.3rem .6rem;border-radius:.4rem;font-size:.92rem;font-weight:600}
 .acciones{display:flex;flex-wrap:wrap;gap:.4rem;min-width:190px}
 .avisos{position:fixed;top:1rem;right:1rem;z-index:2000;max-width:min(540px,92vw)}
-:focus-visible{outline:3px solid #f0ad00!important;outline-offset:2px}
 .ayuda .accordion-button{font-size:1.15rem;font-weight:600}
 .ayuda .accordion-body{font-size:1.08rem;line-height:1.75}
+/* Historial de cambios de una reserva (H16) */
+.caja-cambios{background:#f2f7f4;border:1px solid #cfe3d6;border-radius:.6rem;padding:.75rem 1rem}
+.cambio-por{font-weight:600}
+.celda-cambio{min-width:9rem}
+.tabla-originales tr.dato-cambiado > *{--bs-table-bg:#fff3cd;font-weight:600}
+/* Accesibilidad (WCAG 2.2 AA): bordes de los campos con contraste 3:1 (1.4.11) */
+.form-control,.form-select,.form-check-input{border-color:#6c757d}
+.form-control::placeholder{color:#6c757d}
+.tabla tr.fila-nueva > td:first-child{box-shadow:inset 6px 0 0 #9a6200}
+/* El menú lateral siempre verde (Bootstrap deja transparente .offcanvas-lg en pantallas grandes) */
+.side,.side.offcanvas-lg{background-color:var(--verde)!important}

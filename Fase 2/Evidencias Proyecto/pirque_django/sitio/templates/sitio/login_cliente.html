@@ -9,9 +9,9 @@
 <section class="section-olive py-5">
     <div class="container text-light" style="max-width: 500px;">
         <div class="card bg-dark bg-opacity-25 border border-light-subtle rounded-4 p-4 shadow-lg">
-            <h3 class="font-serif text-center text-warning mb-3">
-                🔑 {% if LANGUAGE_CODE == 'en' %}Guest Identification{% elif LANGUAGE_CODE == 'pt' %}Identificação do Hóspede{% else %}Identificación del Huésped{% endif %}
-            </h3>
+            <h1 class="h3 font-serif text-center text-warning mb-3">
+                <span aria-hidden="true">🔑</span> {% if LANGUAGE_CODE == 'en' %}Guest Identification{% elif LANGUAGE_CODE == 'pt' %}Identificação do Hóspede{% else %}Identificación del Huésped{% endif %}
+            </h1>
             <p class="small text-center opacity-75 mb-4">
                 {% if LANGUAGE_CODE == 'en' %}
                     Enter your details to verify availability and continue with your reservation.
@@ -26,20 +26,30 @@
                 {% csrf_token %}
                 
                 {% if form.non_field_errors %}
-                    <div class="alert alert-danger small py-2">{{ form.non_field_errors }}</div>
+                    <div class="alert alert-danger small py-2" role="alert">{{ form.non_field_errors }}</div>
                 {% endif %}
 
                 {% for field in form %}
+                  {% if field.name == "acepto_privacidad" %}
+                    <div class="form-check mb-3 consentimiento">
+                        {{ field }}
+                        <label class="form-check-label small" for="{{ field.id_for_label }}">
+                            {% if LANGUAGE_CODE == 'en' %}I have read and accept the <a href="{% url 'privacidad' %}" target="_blank" rel="noopener" class="text-warning">Privacy Policy</a>: my details will only be used to manage my booking.{% elif LANGUAGE_CODE == 'pt' %}Li e aceito a <a href="{% url 'privacidad' %}" target="_blank" rel="noopener" class="text-warning">Política de Privacidade</a>: meus dados serão usados apenas para gerenciar minha reserva.{% else %}He leído y acepto la <a href="{% url 'privacidad' %}" target="_blank" rel="noopener" class="text-warning">Política de privacidad</a>: mis datos solo se usarán para gestionar mi reserva.{% endif %}
+                        </label>
+                        {% if field.errors %}<div class="text-danger small mt-1 fw-bold" id="{{ field.auto_id }}_error"><span aria-hidden="true">⚠️</span> {{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                  {% else %}
                     <div class="mb-3">
-                        <label class="form-label text-light fw-bold">{{ field.label }}</label>
+                        <label class="form-label text-light fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
                         
                         {% if field.errors %}
-                            <div class="text-danger small mt-1 fw-bold">
-                                ⚠️ {{ field.errors.0 }}
+                            <div class="text-danger small mt-1 fw-bold" id="{{ field.auto_id }}_error">
+                                <span aria-hidden="true">⚠️</span> {{ field.errors.0 }}
                             </div>
                         {% endif %}
                     </div>
+                  {% endif %}
                 {% endfor %}
 
                 <button type="submit" class="btn btn-warning w-100 rounded-pill font-serif fw-bold py-2 shadow mt-3">
@@ -53,4 +63,4 @@
         </div>
     </div>
 </section>
-{% endblock %}
+{% endblock %}

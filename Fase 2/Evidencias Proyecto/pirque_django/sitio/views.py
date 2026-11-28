@@ -3,11 +3,11 @@ import re
 from functools import wraps
 from pathlib import Path
 from urllib.parse import quote
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib import messages
-from django.db import transaction
+from django.db import DatabaseError, connection, transaction
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -21,6 +21,18 @@ from .forms import ClienteLoginForm, MensajeForm, ReservaForm
 from .idioma import L, idioma
 
 log = logging.getLogger(__name__)
+seguridad = logging.getLogger("seguridad")
+
+# Campo trampa (riesgo R08): va oculto en los formularios públicos. Una persona no lo ve ni lo completa;
+# los programas que envían formularios automáticamente sí lo llenan, y así se descartan sin guardar nada.
+TRAMPA = "sitio_web"
+
+
+def _es_robot(request):
+    if request.POST.get(TRAMPA, "").strip():
+        seguridad.warning("Formulario descartado por el campo trampa: %s ip=%s", request.path, request.META.get("REMOTE_ADDR", ""))
+        return True
+    return False
 
 HORAS = ["Cerrado", "13:00 - 16:00 / 20:00 - 24:00", "13:00 - 16:00 / 20:00 - 24:00", "13:00 - 16:00 / 20:00 - 24:00",
          "13:00 - 16:00 / 20:00 - 01:00", "13:00 - 16:00 / 20:00 - 01:00", "13:00 - 16:00"]
@@ -71,6 +83,9 @@ def como_llegar(request):
 
 def contacto(request):
     form = MensajeForm(request.POST or None)
+    if request.method == "POST" and _es_robot(request):     # se responde igual que si se hubiera enviado, pero no se guarda
+        messages.success(request, L("Mensaje enviado. Te responderemos pronto.", "Message sent. We will reply soon.", "Mensagem enviada. Responderemos em breve."))
+        return redirect("contacto")
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
         m = Mensaje.objects.create(nombre=d["nombre"].strip(), correo=d["correo"].strip(), contenido=d["mensaje"].strip(), fecha_envio=timezone.now())
@@ -103,7 +118,8 @@ def login_cliente(request):
         d = form.cleaned_data
         request.session.cycle_key()
         request.session["huesped"] = {"nombre": d["nombre"].strip(), "apellido": d["apellido"].strip(), "correo": d["correo"].strip().lower(),
-                                      "documento": d["rut"], "telefono": d["telefono"], "extranjero": d["extranjero"]}
+                                      "documento": d["rut"], "telefono": d["telefono"], "extranjero": d["extranjero"],
+                                      "consentimiento": timezone.now().isoformat()}   # aceptó la Política de privacidad
         return redirect(_siguiente(request, reverse("reservar")))
     return render(request, "sitio/login_cliente.html", {"form": form})
 
@@ -117,10 +133,12 @@ def logout_cliente(request):
 # --- SOLICITUD DE RESERVA: se guarda como PENDIENTE y se redirige a WhatsApp con el mensaje prearmado ---
 def _registrar_solicitud(request, hu, d):
     """Crea el cliente (o actualiza sus datos si el RUT/DNI ya existe) y la reserva pendiente. Devuelve (reserva, es_nueva)."""
+    datos_cliente = dict(nombre=hu["nombre"], apellido=hu["apellido"], telefono=hu["telefono"], correo=hu["correo"],
+                         nacionalidad="Extranjero" if hu["extranjero"] else "Chileno")
+    if hu.get("consentimiento"):          # queda registrado cuándo aceptó la Política de privacidad (Ley 21.719)
+        datos_cliente["fecha_consentimiento"] = datetime.fromisoformat(hu["consentimiento"])
     with transaction.atomic():
-        Cliente.objects.update_or_create(id=hu["documento"], defaults=dict(
-            nombre=hu["nombre"], apellido=hu["apellido"], telefono=hu["telefono"], correo=hu["correo"],
-            nacionalidad="Extranjero" if hu["extranjero"] else "Chileno"))
+        Cliente.objects.update_or_create(id=hu["documento"], defaults=datos_cliente)
         r = Reserva.objects.filter(cliente_id=hu["documento"], fecha_entrada=d["llegada"], fecha_salida=d["salida"], estado_reserva="pendiente").first()
         datos = dict(nombre=hu["nombre"], apellido=hu["apellido"], correo=hu["correo"], telefono=hu["telefono"],
                      cant_adultos=d["adultos"], cant_ninos=d["ninos"], idioma=idioma())
@@ -133,14 +151,30 @@ def _registrar_solicitud(request, hu, d):
         return r, True
 
 
+def _demasiadas_pendientes(hu, d):
+    """True si el cliente ya tiene MAX_SOLICITUDES_PENDIENTES solicitudes sin confirmar (sin contar la de estas mismas fechas)."""
+    pendientes = (Reserva.objects.filter(cliente_id=hu["documento"], estado_reserva="pendiente", fecha_salida__gte=timezone.localdate())
+                  .exclude(fecha_entrada=d["llegada"], fecha_salida=d["salida"]))
+    return pendientes.count() >= settings.MAX_SOLICITUDES_PENDIENTES
+
+
 @huesped_requerido
 def reservar(request):
     form = ReservaForm(request.POST or None)
+    if request.method == "POST" and _es_robot(request):
+        return redirect("inicio")
     if request.method == "POST" and form.is_valid():
-        r, nueva = _registrar_solicitud(request, request.session["huesped"], form.cleaned_data)
-        if nueva:
-            correos.aviso_solicitud(correos.url_base(request), r)   # aviso por correo a los administradores
-        return redirect(whatsapp.solicitud(r))                       # redirección directa a WhatsApp
+        hu = request.session["huesped"]
+        if _demasiadas_pendientes(hu, form.cleaned_data):
+            n = settings.MAX_SOLICITUDES_PENDIENTES
+            form.add_error(None, L(f"Ya tienes {n} solicitudes pendientes de confirmación. Espera nuestra respuesta o escríbenos por WhatsApp.",
+                                   f"You already have {n} requests waiting for confirmation. Please wait for our reply or write to us on WhatsApp.",
+                                   f"Você já tem {n} solicitações aguardando confirmação. Aguarde nossa resposta ou escreva para nós pelo WhatsApp."))
+        else:
+            r, nueva = _registrar_solicitud(request, hu, form.cleaned_data)
+            if nueva:
+                correos.aviso_solicitud(correos.url_base(request), r)   # aviso por correo a los administradores
+            return redirect(whatsapp.solicitud(r))                       # redirección directa a WhatsApp
     return render(request, "sitio/reservar.html", {"form": form, "api_url": reverse("api_disponibilidad")})
 
 
@@ -197,6 +231,22 @@ def resena(request, token):
         correos.aviso_resena(correos.url_base(request), res)
         return render(request, "sitio/resena.html", {"estado": "gracias"})
     return render(request, "sitio/resena.html", {"estado": estado, "res": res, "publico": publico})
+
+
+def privacidad(request):
+    """Política de privacidad (Ley 21.719): qué datos se piden, para qué, cuánto tiempo se guardan y cómo ejercer los derechos."""
+    return render(request, "sitio/privacidad.html")
+
+
+def salud(request):
+    """Estado del sitio para un servicio de monitoreo (riesgo R07): 200 si responde y la base de datos está disponible."""
+    try:
+        with connection.cursor() as c:
+            c.execute("SELECT 1")
+        return JsonResponse({"estado": "ok"})
+    except DatabaseError:
+        log.exception("La base de datos no responde")
+        return JsonResponse({"estado": "sin base de datos"}, status=503)
 
 
 def csrf_fallo(request, reason=""):

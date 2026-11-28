@@ -79,4 +79,4 @@ def cancelacion(r, numero=None):
         f"Infelizmente preciso *cancelar* minha reserva 😔\n\n"
         f"🔖 *Reserva nº {r.id}*\n"
         f"📅 {e} → {s}\n\n"
-        f"Muito obrigado(a) pela compreensão 🙏"), numero)
+        f"Muito obrigado(a) pela compreensão 🙏"), numero)

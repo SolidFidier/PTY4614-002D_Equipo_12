@@ -13,7 +13,7 @@ const mostrarAviso = (msg, tipo = 'success') => {
   d.className = `alert alert-${tipo} alert-dismissible fs-5 shadow`; d.setAttribute('role', 'alert');
   d.innerHTML = `<i class="bi ${tipo === 'danger' ? 'bi-exclamation-octagon' : 'bi-check-circle'} me-2"></i><span></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>`;
   d.querySelector('span').textContent = msg; c.appendChild(d);
-  setTimeout(() => d.remove(), 12000);
+  // No se borra sola (WCAG 2.2.1): se cierra con la ×, así hay tiempo de leerla con calma
 };
 const listo = r => { if (r.aviso) sessionStorage.setItem('panelAviso', r.aviso); location.reload(); };
 document.addEventListener('DOMContentLoaded', () => { const a = sessionStorage.getItem('panelAviso'); if (a) { sessionStorage.removeItem('panelAviso'); mostrarAviso(a); } });
@@ -26,12 +26,32 @@ document.addEventListener('click', async e => {
       f.querySelector('.form-error')?.classList.add('d-none'); }
     m.querySelectorAll('[data-fill]').forEach(n => n.textContent = ed.dataset[n.dataset.fill] || '—');
     m.querySelectorAll('[data-post-attr]').forEach(n => n.dataset.post = ed.dataset[n.dataset.postAttr]);
+    // Partes que se muestran solo si el botón trae (o no trae) cierto dato; p. ej. el historial de cambios de una reserva
+    m.querySelectorAll('[data-show-if]').forEach(n => n.classList.toggle('d-none', !ed.dataset[n.dataset.showIf]));
+    m.querySelectorAll('[data-show-if-not]').forEach(n => n.classList.toggle('d-none', !!ed.dataset[n.dataset.showIfNot]));
+    m.querySelectorAll('[data-url-attr]').forEach(n => n.dataset.url = ed.dataset[n.dataset.urlAttr] || '');
+    m.querySelectorAll('.originales').forEach(n => { n.classList.add('d-none'); n.replaceChildren(); });
+    m.querySelectorAll('[data-ver-originales]').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.querySelector('span').textContent = 'Ver datos originales'; });
     if (ed.dataset.vistaUrl) {                       // la reserva fue revisada: deja de destacarse como «Nueva»
       post(ed.dataset.vistaUrl);
       const fila = ed.closest('tr'); fila?.classList.remove('fila-nueva'); fila?.querySelector('.etq-nueva')?.remove();
       delete ed.dataset.vistaUrl;
     }
     bootstrap.Modal.getOrCreateInstance(m).show();
+  }
+  const vo = e.target.closest('[data-ver-originales]');   // reserva: comparar los datos originales con los actuales
+  if (vo) {
+    const caja = vo.closest('.modal').querySelector('.originales'), etq = vo.querySelector('span');
+    if (!caja.classList.contains('d-none')) {
+      caja.classList.add('d-none'); etq.textContent = 'Ver datos originales'; vo.setAttribute('aria-expanded', 'false'); return;
+    }
+    let j;
+    try { j = await (await fetch(vo.dataset.url, {headers: {'X-Requested-With': 'fetch'}})).json(); }
+    catch { j = {ok: false, error: 'No se pudieron cargar los datos originales. Revisa la conexión e inténtalo de nuevo.'}; }
+    if (!j.ok) return mostrarAviso(j.error, 'danger');
+    caja.replaceChildren(tablaOriginales(j));
+    caja.classList.remove('d-none'); etq.textContent = 'Ocultar datos originales'; vo.setAttribute('aria-expanded', 'true');
+    return;
   }
   const del = e.target.closest('[data-delete]');
   if (del && confirm(del.dataset.msg || '¿Eliminar este registro?')) {
@@ -45,6 +65,21 @@ document.addEventListener('click', async e => {
   const p = e.target.closest('[data-post]');
   if (p && (!p.dataset.msg || confirm(p.dataset.msg))) { const r = await post(p.dataset.post); r.ok ? listo(r) : mostrarAviso(r.error, 'danger'); }
 });
+// Tabla «Dato · Original · Actual» de una reserva; los datos que cambiaron se marcan en amarillo.
+// Se arma con textContent (nunca innerHTML) para que ningún dato pueda ejecutar código.
+function tablaOriginales(j) {
+  const frag = document.createDocumentFragment(), el = (tag, txt, cls) => { const n = document.createElement(tag); if (txt !== undefined) n.textContent = txt; if (cls) n.className = cls; return n; };
+  if (!j.modificada) { frag.append(el('p', j.aviso, 'mb-0')); return frag; }
+  frag.append(el('p', `Datos que tenía la reserva antes del primer cambio. Cambiaron ${j.cambios} dato(s), marcados en amarillo.`, 'mb-2'));
+  const tabla = el('table', undefined, 'table table-sm tabla-originales mb-0'), cab = el('tr');
+  ['Dato', 'Original', 'Actual'].forEach(t => cab.append(el('th', t)));
+  tabla.append(el('thead')); tabla.tHead.append(cab);
+  const cuerpo = el('tbody');
+  j.filas.forEach(f => { const tr = el('tr', undefined, f.cambio ? 'dato-cambiado' : ''); tr.append(el('td', f.dato), el('td', f.original), el('td', f.actual)); cuerpo.append(tr); });
+  tabla.append(cuerpo);
+  const envoltura = el('div', undefined, 'table-responsive'); envoltura.append(tabla); frag.append(envoltura);
+  return frag;
+}
 document.addEventListener('submit', async e => {         // formularios AJAX de las modales
   const f = e.target.closest('form[data-ajax]'); if (!f) return;
   e.preventDefault();
@@ -85,8 +120,13 @@ document.addEventListener('submit', async e => {         // formularios AJAX de 
 (() => {
   const btn = document.getElementById('btnActualizar'); if (!btn) return;
   const sello = document.getElementById('ultimaActualizacion');
+  const auto = document.getElementById('chkAutoActualizar');   // se puede pausar la actualización automática (WCAG 2.2.2)
+  if (auto) {
+    auto.checked = localStorage.getItem('panelAutoActualizar') !== 'no';
+    auto.addEventListener('change', () => localStorage.setItem('panelAutoActualizar', auto.checked ? 'si' : 'no'));
+  }
   const refrescar = async (manual) => {
-    if (!manual && document.querySelector('.modal.show')) return;
+    if (!manual && (document.querySelector('.modal.show') || (auto && !auto.checked))) return;
     btn.classList.add('girando');
     try {
       const html = await (await fetch(location.href, {headers: {'X-Requested-With': 'fetch'}})).text();

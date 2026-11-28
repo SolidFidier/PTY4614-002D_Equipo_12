@@ -1,0 +1,15 @@
+{% autoescape off %}Hola {{ user.get_short_name|default:user.get_username }}:
+
+Recibimos una solicitud para cambiar la contraseña de tu cuenta del panel de administración de Hospedaje Rural Pirque.
+
+Para crear una contraseña nueva, abre este enlace:
+
+{{ protocol }}://{{ domain }}{% url 'panel:recuperar_confirmar' uidb64=uid token=token %}
+
+El enlace sirve una sola vez y vence en 1 hora.
+Tu usuario es: {{ user.get_username }}
+
+Si no pediste este cambio, ignora este correo: tu contraseña seguirá siendo la misma.
+
+Hospedaje Rural Pirque
+{% endautoescape %}

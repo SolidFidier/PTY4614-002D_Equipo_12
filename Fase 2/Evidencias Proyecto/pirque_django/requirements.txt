@@ -1,3 +1,6 @@
-Django>=5.0
-psycopg[binary]>=3.1
-reportlab>=4.0
+# Versiones fijadas para que una actualización no rompa el sitio sin aviso (riesgo R10).
+# Para revisar si alguna tiene fallas de seguridad conocidas:  pip install pip-audit  y luego  pip-audit -r requirements.txt
+# Actualiza dentro del mismo rango (parches de seguridad) con:  pip install -U -r requirements.txt
+Django>=6.1,<6.2
+psycopg[binary]>=3.2,<4
+reportlab>=4.0,<5

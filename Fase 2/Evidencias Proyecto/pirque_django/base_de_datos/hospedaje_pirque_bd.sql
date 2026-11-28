@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS clientes (
     apellido      varchar(100) NOT NULL,
     nacionalidad  varchar(50)  NOT NULL,              -- Chileno | Extranjero
     telefono      varchar(100) NOT NULL,
-    correo        varchar(100) NOT NULL
+    correo        varchar(100) NOT NULL,
+    fecha_consentimiento timestamp                    -- cuándo aceptó la Política de privacidad (Ley 21.719); NULL = clientes antiguos o creados en el panel
 );
 
 CREATE TABLE IF NOT EXISTS reservas (
@@ -34,8 +35,16 @@ CREATE TABLE IF NOT EXISTS reservas (
     vista           boolean      NOT NULL DEFAULT false,         -- false = solicitud nueva que la administradora aún no revisa (se destaca en el panel)
     idioma          varchar(2)   NOT NULL DEFAULT 'es',          -- idioma del cliente (es | en | pt) para los correos
     fecha_reserva   timestamp    NOT NULL DEFAULT now(),         -- cuándo se creó la reserva
+    "FK_admin"      integer,                                     -- usuario de Django que hizo el último cambio (aceptar, editar o restaurar); NULL = sin cambios
+    fecha_modificacion timestamp,                                -- cuándo se hizo ese último cambio
+    datos_originales jsonb,                                      -- copia de los datos antes del PRIMER cambio (para verlos o restaurarlos)
     CONSTRAINT chk_reservas_estado_reserva CHECK (estado_reserva IN ('pendiente', 'aceptada', 'cancelada')),
-    CONSTRAINT chk_reservas_estado_pago    CHECK (estado_pago IN ('pendiente', 'abonado', 'pagado', 'cancelado'))
+    CONSTRAINT chk_reservas_estado_pago    CHECK (estado_pago IN ('pendiente', 'abonado', 'pagado', 'cancelado')),
+    CONSTRAINT chk_reservas_fechas         CHECK (fecha_salida > fecha_entrada),
+    -- Servicio exclusivo (un solo grupo a la vez): la base de datos impide dos reservas ACEPTADAS con fechas cruzadas,
+    -- aunque dos personas acepten al mismo tiempo. daterange [entrada, salida): el día de salida queda libre para el siguiente grupo.
+    CONSTRAINT excl_reservas_aceptadas_sin_cruce EXCLUDE USING gist (daterange(fecha_entrada, fecha_salida) WITH &&)
+        WHERE (estado_reserva = 'aceptada')
 );
 
 CREATE TABLE IF NOT EXISTS mensajes (
@@ -69,3 +78,7 @@ CREATE TABLE IF NOT EXISTS configuracion (
     fecha_cambio  timestamp    NOT NULL DEFAULT now(),
     "FK_admin"    integer                              -- usuario de Django que hizo el último cambio
 );
+
+-- Índices (listas del panel y burbuja de mensajes pendientes)
+CREATE INDEX IF NOT EXISTS idx_reservas_estado_fecha ON reservas (estado_reserva, fecha_entrada);
+CREATE INDEX IF NOT EXISTS idx_mensajes_pendientes   ON mensajes (fecha_gestion);

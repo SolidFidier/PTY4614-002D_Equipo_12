@@ -1,0 +1,93 @@
+{% extends "sitio/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Privacy Policy - {{ SITIO.nombre }}{% elif LANGUAGE_CODE == 'pt' %}Política de Privacidade - {{ SITIO.nombre }}{% else %}Política de privacidad - {{ SITIO.nombre }}{% endif %}{% endblock %}
+
+{% block hero %}
+<h1 class="page-title">{% if LANGUAGE_CODE == 'en' %}Privacy Policy{% elif LANGUAGE_CODE == 'pt' %}Política de Privacidade{% else %}Política de privacidad{% endif %}</h1>
+{% endblock %}
+
+{% block content %}
+<section class="section-olive py-5">
+  <div class="container" style="max-width: 860px;">
+    <div class="card bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm">
+      <div class="card-body p-4 p-md-5 politica">
+{% if LANGUAGE_CODE == 'en' %}
+        <p class="lead">At {{ SITIO.nombre }} we take care of your personal data. This policy explains what data we ask for, why, and how you can exercise your rights under Chilean Law 21,719 on Personal Data Protection.</p>
+        <h2 class="h5 text-warning mt-4">1. Who is responsible for your data</h2>
+        <p>{{ SITIO.nombre }}, {{ SITIO.direccion }}. Contact: <a href="mailto:{{ SITIO.email }}" class="text-warning">{{ SITIO.email }}</a> · WhatsApp +{{ SITIO.whatsapp }}.</p>
+        <h2 class="h5 text-warning mt-4">2. What data we ask for</h2>
+        <ul>
+          <li><b>To request a booking:</b> first name, last name, RUT or ID/passport number, email, phone, dates, number of guests and the language of the website.</li>
+          <li><b>Contact form:</b> name, email and your message.</li>
+          <li><b>Reviews:</b> rating, comment and the public name you choose.</li>
+        </ul>
+        <p>We only ask for what is necessary. We do not ask for card details or charge online.</p>
+        <h2 class="h5 text-warning mt-4">3. What we use it for</h2>
+        <p>To manage your request and your stay, to contact you by email or WhatsApp, to confirm or cancel your booking, to invite you to leave a review after your stay and to meet our legal obligations. We do not use your data for advertising and we never sell or share it with third parties for their own purposes.</p>
+        <h2 class="h5 text-warning mt-4">4. Legal basis</h2>
+        <p>Your explicit consent, given by ticking the box “I accept the Privacy Policy”, and the management of the booking you request. You can withdraw your consent at any time by writing to us.</p>
+        <h2 class="h5 text-warning mt-4">5. Who can see your data</h2>
+        <p>Only the staff of the lodging, through an administration panel protected by a password. The services we need to operate (website hosting and email) process the data on our behalf. If you choose to write to us on WhatsApp, your message is also subject to WhatsApp's terms.</p>
+        <h2 class="h5 text-warning mt-4">6. How long we keep it</h2>
+        <p>For as long as needed to manage your booking and to meet our legal and tax obligations. After that, the data is deleted or anonymized.</p>
+        <h2 class="h5 text-warning mt-4">7. Your rights</h2>
+        <p>You can request access to your data, its rectification, deletion, portability or blocking, and object to its processing. Write to <a href="mailto:{{ SITIO.email }}" class="text-warning">{{ SITIO.email }}</a> with your name and RUT/ID; we will answer within the time limits set by law. You may also file a complaint with the Personal Data Protection Agency.</p>
+        <h2 class="h5 text-warning mt-4">8. How we protect it</h2>
+        <p>Encrypted passwords, access only for authorized staff, automatic blocking after repeated failed logins, a record of important changes, regular backups of the database and protection against the most common web attacks.</p>
+        <p class="small opacity-75 mt-4 mb-0">Last updated: November 2026.</p>
+{% elif LANGUAGE_CODE == 'pt' %}
+        <p class="lead">No {{ SITIO.nombre }} cuidamos dos seus dados pessoais. Esta política explica quais dados pedimos, para quê, e como você pode exercer seus direitos conforme a Lei chilena 21.719 de Proteção de Dados Pessoais.</p>
+        <h2 class="h5 text-warning mt-4">1. Quem é responsável pelos seus dados</h2>
+        <p>{{ SITIO.nombre }}, {{ SITIO.direccion }}. Contato: <a href="mailto:{{ SITIO.email }}" class="text-warning">{{ SITIO.email }}</a> · WhatsApp +{{ SITIO.whatsapp }}.</p>
+        <h2 class="h5 text-warning mt-4">2. Quais dados pedimos</h2>
+        <ul>
+          <li><b>Para solicitar uma reserva:</b> nome, sobrenome, RUT ou número de documento/passaporte, e-mail, telefone, datas, quantidade de hóspedes e o idioma do site.</li>
+          <li><b>Formulário de contato:</b> nome, e-mail e sua mensagem.</li>
+          <li><b>Avaliações:</b> nota, comentário e o nome público que você escolher.</li>
+        </ul>
+        <p>Pedimos apenas o necessário. Não pedimos dados de cartão nem cobramos on-line.</p>
+        <h2 class="h5 text-warning mt-4">3. Para que os usamos</h2>
+        <p>Para gerenciar sua solicitação e sua estadia, entrar em contato por e-mail ou WhatsApp, confirmar ou cancelar sua reserva, convidá-lo a deixar uma avaliação após a estadia e cumprir nossas obrigações legais. Não usamos seus dados para publicidade e nunca os vendemos nem cedemos a terceiros para fins próprios.</p>
+        <h2 class="h5 text-warning mt-4">4. Base legal</h2>
+        <p>Seu consentimento explícito, dado ao marcar a caixa «Aceito a Política de Privacidade», e a gestão da reserva que você solicita. Você pode retirar seu consentimento a qualquer momento escrevendo para nós.</p>
+        <h2 class="h5 text-warning mt-4">5. Quem pode ver seus dados</h2>
+        <p>Somente a equipe da hospedagem, por meio de um painel de administração protegido por senha. Os serviços necessários para operar (hospedagem do site e e-mail) tratam os dados em nosso nome. Se você decidir escrever pelo WhatsApp, sua mensagem também fica sujeita aos termos do WhatsApp.</p>
+        <h2 class="h5 text-warning mt-4">6. Por quanto tempo os guardamos</h2>
+        <p>Pelo tempo necessário para gerenciar sua reserva e cumprir nossas obrigações legais e tributárias. Depois disso, os dados são eliminados ou anonimizados.</p>
+        <h2 class="h5 text-warning mt-4">7. Seus direitos</h2>
+        <p>Você pode solicitar o acesso aos seus dados, sua retificação, eliminação, portabilidade ou bloqueio, e se opor ao seu tratamento. Escreva para <a href="mailto:{{ SITIO.email }}" class="text-warning">{{ SITIO.email }}</a> informando seu nome e RUT/documento; responderemos dentro dos prazos fixados pela lei. Você também pode reclamar perante a Agência de Proteção de Dados Pessoais.</p>
+        <h2 class="h5 text-warning mt-4">8. Como os protegemos</h2>
+        <p>Senhas criptografadas, acesso somente para pessoal autorizado, bloqueio automático após várias tentativas de acesso falhas, registro das mudanças importantes, cópias de segurança periódicas da base de dados e proteção contra os ataques web mais comuns.</p>
+        <p class="small opacity-75 mt-4 mb-0">Última atualização: novembro de 2026.</p>
+{% else %}
+        <p class="lead">En {{ SITIO.nombre }} cuidamos tus datos personales. Esta política explica qué datos pedimos, para qué, y cómo puedes ejercer tus derechos según la Ley N° 21.719 de Protección de Datos Personales.</p>
+        <h2 class="h5 text-warning mt-4">1. Responsable de tus datos</h2>
+        <p>{{ SITIO.nombre }}, {{ SITIO.direccion }}. Contacto: <a href="mailto:{{ SITIO.email }}" class="text-warning">{{ SITIO.email }}</a> · WhatsApp +{{ SITIO.whatsapp }}.</p>
+        <h2 class="h5 text-warning mt-4">2. Qué datos pedimos</h2>
+        <ul>
+          <li><b>Para solicitar una reserva:</b> nombre, apellido, RUT o número de documento/pasaporte, correo, teléfono, fechas, cantidad de personas y el idioma del sitio.</li>
+          <li><b>Formulario de contacto:</b> nombre, correo y tu mensaje.</li>
+          <li><b>Reseñas:</b> calificación, comentario y el nombre público que elijas.</li>
+        </ul>
+        <p>Solo pedimos lo necesario. No pedimos datos de tarjetas ni cobramos en línea.</p>
+        <h2 class="h5 text-warning mt-4">3. Para qué los usamos</h2>
+        <p>Para gestionar tu solicitud y tu estadía, comunicarnos contigo por correo o WhatsApp, confirmar o cancelar tu reserva, invitarte a dejar una reseña después de tu estadía y cumplir nuestras obligaciones legales. No usamos tus datos para publicidad y nunca los vendemos ni los cedemos a terceros para fines propios.</p>
+        <h2 class="h5 text-warning mt-4">4. Base legal</h2>
+        <p>Tu consentimiento explícito, que entregas al marcar la casilla «Acepto la Política de privacidad», y la gestión de la reserva que solicitas. Puedes retirar tu consentimiento cuando quieras escribiéndonos.</p>
+        <h2 class="h5 text-warning mt-4">5. Quién puede ver tus datos</h2>
+        <p>Solo el personal del hospedaje, a través de un panel de administración protegido con contraseña. Los servicios que necesitamos para funcionar (alojamiento del sitio web y correo) tratan los datos por encargo nuestro. Si decides escribirnos por WhatsApp, tu mensaje también queda sujeto a los términos de WhatsApp.</p>
+        <h2 class="h5 text-warning mt-4">6. Cuánto tiempo los guardamos</h2>
+        <p>Durante el tiempo necesario para gestionar tu reserva y cumplir nuestras obligaciones legales y tributarias. Después, los datos se eliminan o se anonimizan.</p>
+        <h2 class="h5 text-warning mt-4">7. Tus derechos</h2>
+        <p>Puedes pedir el acceso a tus datos, su rectificación, supresión, portabilidad o bloqueo, y oponerte a su tratamiento. Escríbenos a <a href="mailto:{{ SITIO.email }}" class="text-warning">{{ SITIO.email }}</a> indicando tu nombre y RUT/documento; te responderemos dentro de los plazos que fija la ley. También puedes presentar un reclamo ante la Agencia de Protección de Datos Personales.</p>
+        <h2 class="h5 text-warning mt-4">8. Cómo los protegemos</h2>
+        <p>Contraseñas cifradas, acceso solo para personal autorizado, bloqueo automático tras varios intentos fallidos de ingreso, registro de los cambios importantes, respaldos periódicos de la base de datos y protección contra los ataques web más comunes.</p>
+        <p class="small opacity-75 mt-4 mb-0">Última actualización: noviembre de 2026.</p>
+{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

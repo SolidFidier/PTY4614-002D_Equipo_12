@@ -20,4 +20,8 @@ urlpatterns = [
 
     # Reseña de la estadía (enlace personal enviado por correo)
     path("resena/<str:token>/", views.resena, name="resena"),
+
+    # Política de privacidad (Ley 21.719) y estado del sitio para el monitoreo
+    path("privacidad/", views.privacidad, name="privacidad"),
+    path("salud/", views.salud, name="salud"),
 ]

@@ -1,9 +1,9 @@
 {% extends "panel/base.html" %}{% load static %}
 {% block title %}Contraseña actualizada{% endblock %}
-{% block cuerpo %}<div class="row g-0">
-<div class="col-lg-4 login-izq p-4"><img src="{% static 'img/logo.svg' %}" alt="" style="height:90px" class="mb-3"><h2 style="font-family:Georgia,serif">Hospedaje Rural<br><b>Pirque</b></h2><p class="mt-3 opacity-75">Naturaleza, descanso<br>y tranquilidad</p></div>
-<div class="col-lg-8 d-flex align-items-center justify-content-center p-4 login-der"><div class="tarjeta text-center" style="max-width:440px;width:100%">
-  <i class="bi bi-check-circle fs-1 text-success"></i><h1 class="h4 fw-bold mt-2" style="color:var(--verde)">¡Listo! Tu contraseña cambió</h1>
+{% block cuerpo %}<main id="contenido" tabindex="-1" class="row g-0">
+<div class="col-lg-4 login-izq p-4"><img src="{% static 'img/logo.svg' %}" alt="" style="height:90px" class="mb-3"><p class="h2" style="font-family:Georgia,serif">Hospedaje Rural<br><b>Pirque</b></p><p class="mt-3 opacity-75">Naturaleza, descanso<br>y tranquilidad</p></div>
+<div class="col-lg-8 d-flex align-items-center justify-content-center p-4 login-der flex-column">{% include "accesibilidad/_menu.html" %}<div class="tarjeta mt-3 text-center" style="max-width:440px;width:100%">
+  <i aria-hidden="true" class="bi bi-check-circle fs-1 text-success"></i><h1 class="h4 fw-bold mt-2" style="color:var(--verde)">¡Listo! Tu contraseña cambió</h1>
   <p class="mt-3">Ya puedes entrar al panel con tu contraseña nueva.</p>
-  <a class="btn btn-pirque w-100 py-2 mt-2" href="{% url 'panel:login' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión</a>
-</div></div></div>{% endblock %}
+  <a class="btn btn-pirque w-100 py-2 mt-2" href="{% url 'panel:login' %}"><i aria-hidden="true" class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión</a>
+</div></div></main>{% endblock %}

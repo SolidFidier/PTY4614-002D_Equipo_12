@@ -1,6 +1,6 @@
 {% extends "panel/base.html" %}
 {% block content %}
-<h2 class="h3 mb-2"><i class="bi bi-question-circle me-2"></i>Ayuda: cómo usar el panel</h2>
+<h2 class="h3 mb-2"><i aria-hidden="true" class="bi bi-question-circle me-2"></i>Ayuda: cómo usar el panel</h2>
 <p class="fs-5 text-muted mb-4">Aquí tienes los pasos para las tareas de todos los días. Haz clic en cada título para abrirlo.</p>
 
 <div class="accordion ayuda" id="ayuda">
@@ -81,5 +81,26 @@
      <li>Abre el correo que te llega y pulsa el enlace. <b>Vale por 1 hora</b> y sirve una sola vez. Si no lo ves, revisa la carpeta de spam.</li>
      <li>Escribe tu <b>nueva contraseña</b> dos veces y pulsa <b>Guardar contraseña</b>. Luego entra con ella.</li>
    </ol></div></div></div>
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a12">12. Ver quién cambió una reserva y volver a sus datos originales</button></h3>
+  <div id="a12" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <p>Cada vez que alguien del panel <b>acepta</b>, <b>edita</b> o <b>restaura</b> una reserva, queda guardado quién lo hizo y cuándo. Además, antes del primer cambio se guarda una copia de los datos que tenía la reserva (sus <b>datos originales</b>).</p>
+   <ol>
+     <li>En <b>Reservas</b>, mira la columna <b>Último cambio</b>: muestra el nombre de la persona y la fecha. Si dice «Sin cambios», nadie la ha modificado.</li>
+     <li>Pulsa <b>Ver / Editar</b> en la reserva. Arriba de la ventana verás «Último cambio» con el nombre y la fecha.</li>
+     <li>Pulsa <b>Ver datos originales</b>: aparece una tabla con cada dato como era al principio y como está ahora. Lo que cambió se marca en <b>amarillo</b>. Pulsa el mismo botón para ocultarla.</li>
+     <li>Si quieres deshacer los cambios, pulsa <b>Restaurar datos originales</b>. El panel te pedirá que <b>confirmes</b>: pulsa «Aceptar» para continuar o «Cancelar» si te arrepientes.</li>
+     <li>Al restaurar, la reserva vuelve a sus datos originales y queda registrado que tú hiciste ese cambio. Los datos originales se mantienen guardados, por si los necesitas otra vez.</li>
+   </ol>
+   <p class="mb-0"><b>Importante:</b> si originalmente la reserva estaba <b>aceptada</b> y ahora hay otra reserva aceptada en esas fechas, el panel no te dejará restaurarla (el alojamiento es para un solo grupo a la vez). Primero cambia o cancela la otra reserva.</p></div></div></div>
+ <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a13">13. Ver la pantalla más grande o con más contraste (accesibilidad)</button></h3>
+  <div id="a13" class="accordion-collapse collapse" data-bs-parent="#ayuda"><div class="accordion-body">
+   <ol>
+     <li>Arriba de cualquier pantalla del panel, junto a <b>¿Necesitas ayuda?</b>, está el botón <b>Accesibilidad</b> (en el sitio público está arriba, junto al selector de idioma). Púlsalo.</li>
+     <li>Elige el <b>tamaño del texto</b> (Normal, Grande, Muy grande o Máximo).</li>
+     <li>Activa lo que te acomode: <b>Alto contraste</b> (fondo negro y letras blancas), <b>Subrayar los enlaces</b>, <b>Más espacio entre líneas y letras</b>, <b>Letra más fácil de leer</b> o <b>Detener animaciones y movimiento</b>. Cada botón dice si está «Activado» o «Desactivado».</li>
+     <li>La elección queda guardada en este computador: la próxima vez el panel se verá igual. Para volver a como estaba, pulsa <b>Restablecer todo</b>.</li>
+   </ol>
+   <p>Otras ayudas: con la tecla <b>Tab</b> puedes recorrer los botones (el que está elegido se marca con un borde grueso) y el primer enlace, «Saltar al contenido principal», lleva directo a la información de la página. En <b>Reservas</b> puedes desmarcar <b>«Actualizar sola cada 30 segundos»</b> si prefieres que la lista no cambie mientras la lees.</p>
+   <p class="mb-0">También puedes agrandar todo con <b>Ctrl</b> y la tecla <b>+</b> (y achicar con <b>Ctrl</b> y <b>−</b>).</p></div></div></div>
 </div>
 {% endblock %}

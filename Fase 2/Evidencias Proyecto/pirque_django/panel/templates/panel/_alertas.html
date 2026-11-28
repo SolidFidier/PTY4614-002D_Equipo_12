@@ -1,7 +1,7 @@
 {% if alertas %}
 <div class="alert alert-warning alerta-fechas mb-3" role="alert">
   <div class="d-flex gap-3">
-    <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+    <i aria-hidden="true" class="bi bi-exclamation-triangle-fill fs-1"></i>
     <div>
       <h3 class="h5 mb-2">Atención: hay reservas sin aceptar con fechas repetidas</h3>
       <p class="mb-2">Solo puedes <b>aceptar una</b> reserva por fecha, porque el alojamiento es para un solo grupo a la vez. Revisa estos casos:</p>
@@ -19,7 +19,7 @@
         </li>
         {% endfor %}
       </ul>
-      {% if request.resolver_match.url_name != 'reservas_pendientes' %}<a href="{% url 'panel:reservas_pendientes' %}" class="btn btn-warning"><i class="bi bi-arrow-right-circle me-1"></i>Ir a las reservas pendientes</a>{% endif %}
+      {% if request.resolver_match.url_name != 'reservas_pendientes' %}<a href="{% url 'panel:reservas_pendientes' %}" class="btn btn-warning"><i aria-hidden="true" class="bi bi-arrow-right-circle me-1"></i>Ir a las reservas pendientes</a>{% endif %}
     </div>
   </div>
 </div>

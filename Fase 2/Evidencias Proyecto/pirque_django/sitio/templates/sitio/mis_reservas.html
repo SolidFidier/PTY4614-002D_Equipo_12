@@ -21,14 +21,14 @@
         <div class="card bg-dark bg-opacity-25 border border-light-subtle rounded-4 p-4 mb-3 shadow-sm">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                 <div>
-                    <h5 class="font-serif text-warning mb-1">#{{ r.id }}</h5>
+                    <h2 class="h5 font-serif text-warning mb-1">{% t "Reserva" "Booking" "Reserva" %} #{{ r.id }}</h2>
                     <div>{{ r.fecha_entrada|date:"d/m/Y" }} → {{ r.fecha_salida|date:"d/m/Y" }} <span class="opacity-75">({{ r.noches }} {% t "noche(s)" "night(s)" "noite(s)" %})</span></div>
                     <div class="small opacity-75">{{ r.personas }} {% t "persona(s)" "guest(s)" "pessoa(s)" %}</div>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-{{ r.color }} px-3 py-2 mb-2">{{ r.etiqueta }}</span><br>
                     {% if r.puede_cancelar %}
-                        <a href="{{ r.wa_cancelar }}" target="_blank" rel="noopener" class="btn btn-outline-success btn-sm rounded-pill px-3 text-light"><i class="bi bi-whatsapp me-1"></i>{% t "Cancelar por WhatsApp" "Cancel via WhatsApp" "Cancelar pelo WhatsApp" %}</a>
+                        <a href="{{ r.wa_cancelar }}" target="_blank" rel="noopener" class="btn btn-outline-success btn-sm rounded-pill px-3 text-light"><i class="bi bi-whatsapp me-1" aria-hidden="true"></i>{% t "Cancelar por WhatsApp" "Cancel via WhatsApp" "Cancelar pelo WhatsApp" %}<span class="visually-hidden"> {% t "(se abre en otra pestaña)" "(opens in a new tab)" "(abre em outra aba)" %}</span></a>
                     {% endif %}
                 </div>
             </div>

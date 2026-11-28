@@ -1,0 +1,9 @@
+# GitHub revisa cada semana si hay versiones nuevas o parches de seguridad de las dependencias de requirements.txt
+# y abre un Pull Request para actualizarlas (riesgo R10). Solo funciona si el proyecto está en GitHub.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

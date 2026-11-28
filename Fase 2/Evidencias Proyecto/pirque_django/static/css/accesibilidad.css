@@ -1,0 +1,84 @@
+/* ============ Accesibilidad (WCAG 2.2, nivel AA) · compartido por el sitio y el panel ============
+   Las opciones del menú «Accesibilidad» agregan una clase a <html> (js/accesibilidad.js) y se recuerdan en el navegador:
+   a11y-texto-1/2/3 (tamaño del texto) · a11y-contraste · a11y-subrayar · a11y-espaciado · a11y-legible · a11y-sin-animaciones */
+
+/* ---------- Saltar al contenido (2.4.1 Evitar bloques) ---------- */
+.saltar-contenido{position:absolute;left:1rem;top:-100px;z-index:3000;background:#ffd45e;color:#1a1300;font-weight:700;
+  padding:.7rem 1.1rem;border-radius:.5rem;text-decoration:none;box-shadow:0 .3rem 1rem rgba(0,0,0,.35)}
+.saltar-contenido:focus{top:1rem;color:#1a1300;outline:3px solid #0f3d2c;outline-offset:2px}
+#contenido:focus{outline:none}
+
+/* ---------- Foco siempre visible y con buen contraste sobre fondos claros y oscuros (2.4.7, 1.4.11) ---------- */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,
+[tabindex]:focus-visible,.form-check-input:focus-visible,.btn:focus-visible,.nav-link:focus-visible,.dropdown-item:focus-visible{
+  outline:3px solid #0f3d2c!important;outline-offset:2px!important;box-shadow:0 0 0 6px #ffd45e!important}
+
+/* ---------- Respeta «reducir movimiento» del sistema (2.3.3, 2.2.2) ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ---------- Opciones del menú ---------- */
+/* --a11y-base: tamaño normal de la página (el panel ya usa 112.5%) */
+html.a11y-texto-1{font-size:calc(var(--a11y-base,100%) * 1.15)!important}
+html.a11y-texto-2{font-size:calc(var(--a11y-base,100%) * 1.3)!important}
+html.a11y-texto-3{font-size:calc(var(--a11y-base,100%) * 1.5)!important}
+html.a11y-subrayar a:not(.btn):not(.saltar-contenido){text-decoration:underline!important;text-underline-offset:.18em}
+html.a11y-espaciado body *{line-height:1.8!important;letter-spacing:.06em!important;word-spacing:.16em!important}
+html.a11y-espaciado p{margin-bottom:2em!important}
+html.a11y-legible body,html.a11y-legible body *:not(.bi):not([class^="bi-"]):not([class*=" bi-"]){font-family:Verdana,Tahoma,"Segoe UI",Arial,sans-serif!important}
+html.a11y-sin-animaciones *,html.a11y-sin-animaciones *::before,html.a11y-sin-animaciones *::after{
+  animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html.a11y-sin-animaciones .exp-card:hover,html.a11y-sin-animaciones .resena-card:hover{transform:none!important}
+
+/* Alto contraste: fondo negro, texto blanco, enlaces amarillos y bordes visibles */
+html.a11y-contraste body,html.a11y-contraste body *:not(img):not(svg):not(path):not(canvas):not(iframe){
+  background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#fff!important;text-shadow:none!important;box-shadow:none!important}
+html.a11y-contraste a,html.a11y-contraste a *{color:#ff0!important;text-decoration:underline!important}
+html.a11y-contraste .btn,html.a11y-contraste button,html.a11y-contraste .form-control,html.a11y-contraste .form-select,
+html.a11y-contraste input,html.a11y-contraste textarea,html.a11y-contraste select,html.a11y-contraste .tarjeta,
+html.a11y-contraste .card,html.a11y-contraste .modal-content,html.a11y-contraste .badge-e,html.a11y-contraste .alert{border:2px solid #fff!important}
+html.a11y-contraste .btn:hover,html.a11y-contraste button:hover{background-color:#ff0!important;color:#000!important}
+html.a11y-contraste .btn:hover *,html.a11y-contraste button:hover *{color:#000!important;background-color:#ff0!important}
+html.a11y-contraste ::placeholder{color:#ccc!important}
+html.a11y-contraste .hero-overlay{display:none!important}
+html.a11y-contraste .side{background-color:#000!important}
+html.a11y-contraste .flatpickr-day.dia-ocupado{background-color:#a00!important;color:#fff!important;text-decoration:line-through!important}
+html.a11y-contraste .flatpickr-day.selected,html.a11y-contraste .flatpickr-day.startRange,html.a11y-contraste .flatpickr-day.endRange{background-color:#ff0!important;color:#000!important}
+html.a11y-contraste .flatpickr-day.inRange{background-color:#555!important}
+html.a11y-contraste .tabla tr.fila-nueva > *,html.a11y-contraste .tabla-originales tr.dato-cambiado > *{background-color:#333!important;outline:2px solid #ff0}
+html.a11y-contraste .burbuja,html.a11y-contraste .tarea .num{background-color:#ff0!important;color:#000!important}
+html.a11y-contraste .carousel-control-prev-icon,html.a11y-contraste .carousel-control-next-icon{background-color:transparent!important;filter:none}
+html.a11y-contraste :focus-visible{outline:3px solid #ff0!important;box-shadow:0 0 0 6px #000!important}
+
+/* ---------- Botón y menú de accesibilidad ---------- */
+/* El botón va dentro de la cabecera (sitio) o junto a «¿Necesitas ayuda?» (panel): no flota, así nunca tapa contenido (2.4.11) */
+.a11y-contenedor{position:relative;display:inline-block}
+.a11y-boton{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.4rem .95rem;
+  border-radius:2rem;border:2px solid #fff;background:#0f3d2c;color:#fff;font-weight:700;font-size:.95rem;line-height:1.2}
+.a11y-boton:hover{background:#1f6b4f;color:#fff}
+.a11y-boton .bi{font-size:1.25rem}
+.a11y-menu{position:absolute;right:0;top:calc(100% + .5rem);z-index:2500;width:min(360px,calc(100vw - 2rem));max-height:calc(100vh - 7rem);overflow:auto;
+  background:#fff;color:#1c2b24;border:2px solid #0f3d2c;border-radius:1rem;padding:1rem 1.1rem;box-shadow:0 .6rem 2rem rgba(0,0,0,.35);
+  font-family:"Open Sans",system-ui,sans-serif;text-align:left}
+.a11y-menu[hidden]{display:none}
+.a11y-menu h2{font-size:1.15rem;font-weight:700;margin:0 0 .2rem;font-family:inherit;color:#0f3d2c}
+.a11y-menu p{font-size:.9rem;margin:0 0 .8rem;color:#3d4d45}
+.a11y-menu .grupo{margin-bottom:.8rem}
+.a11y-menu .grupo-titulo{display:block;font-weight:700;font-size:.95rem;margin-bottom:.35rem;color:#1c2b24}
+.a11y-menu .fila-botones{display:flex;gap:.4rem;flex-wrap:wrap}
+.a11y-menu button.opcion,.a11y-menu .fila-botones button{min-height:44px;border:2px solid #0f3d2c;background:#fff;color:#0f3d2c;border-radius:.6rem;
+  padding:.45rem .7rem;font-weight:600;font-size:.95rem;text-align:left}
+.a11y-menu button.opcion{display:flex;width:100%;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.4rem}
+.a11y-menu button[aria-pressed="true"]{background:#0f3d2c;color:#fff}
+.a11y-menu button.opcion .estado::after{content:attr(data-off)}
+.a11y-menu button.opcion[aria-pressed="true"] .estado::after{content:attr(data-on)}
+.a11y-menu .restablecer{width:100%;min-height:44px;border:2px solid #9b1c1c;background:#fff;color:#9b1c1c;border-radius:.6rem;font-weight:700;margin-top:.3rem}
+.a11y-menu .cerrar{float:right;border:0;background:none;color:#1c2b24;font-size:1.5rem;line-height:1;min-width:44px;min-height:44px;margin:-.6rem -.6rem 0 0}
+/* En pantallas angostas el menú ocupa el ancho de la pantalla, sin salirse por los lados */
+@media (max-width:767.98px){.a11y-menu{position:fixed;left:1rem;right:1rem;top:4.5rem;width:auto}}
+@media print{.a11y-boton,.a11y-menu,.saltar-contenido{display:none!important}}
+
+/* Pausar el carrusel (2.2.2 Pausar, detener, ocultar) */
+.carrusel-pausa{position:absolute;right:.8rem;bottom:.8rem;z-index:5;min-width:44px;min-height:44px;border-radius:2rem;border:2px solid #fff;
+  background:rgba(0,0,0,.65);color:#fff;font-weight:700;padding:.3rem .9rem}

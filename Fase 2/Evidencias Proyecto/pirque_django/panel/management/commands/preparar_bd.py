@@ -19,4 +19,11 @@ class Command(BaseCommand):
             c.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' "
                       "AND table_name IN ('clientes', 'reservas', 'mensajes', 'resenas', 'configuracion') ORDER BY 1")
             self.stdout.write("Tablas del hospedaje: " + ", ".join(r[0] for r in c.fetchall()))
+            c.execute("SELECT 1 FROM pg_constraint WHERE conname = 'excl_reservas_aceptadas_sin_cruce'")
+            if c.fetchone():
+                self.stdout.write("  Regla «un solo grupo a la vez» activa en la base de datos.")
+            else:
+                self.stdout.write(self.style.WARNING(
+                    "  AVISO: hay reservas ACEPTADAS con fechas cruzadas, por eso la base de datos aún no impide los cruces.\n"
+                    "  Corrígelas en el panel (cancela o cambia las fechas de una de ellas) y vuelve a ejecutar: python manage.py preparar_bd"))
         self.stdout.write(self.style.SUCCESS("Base de datos lista. Siguiente: python manage.py migrate"))

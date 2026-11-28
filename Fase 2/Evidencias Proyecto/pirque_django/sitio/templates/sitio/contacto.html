@@ -19,7 +19,7 @@
             <div class="col-12 col-md-4">
                 <a href="tel:{{ SITIO.tel_enlace }}" class="text-decoration-none">
                     <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-3 hover-card">
-                        <i class="bi bi-telephone-fill fs-1 text-warning mb-2"></i>
+                        <i aria-hidden="true" class="bi bi-telephone-fill fs-1 text-warning mb-2"></i>
                         <h6 class="fw-bold mb-1">
                             {% if LANGUAGE_CODE == 'en' %}Phone{% elif LANGUAGE_CODE == 'pt' %}Telefone{% else %}Teléfono{% endif %}
                         </h6>
@@ -31,7 +31,7 @@
             <div class="col-12 col-md-4">
                 <a href="mailto:{{ SITIO.email }}" class="text-decoration-none">
                     <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-3 hover-card">
-                        <i class="bi bi-envelope-fill fs-1 text-warning mb-2"></i>
+                        <i aria-hidden="true" class="bi bi-envelope-fill fs-1 text-warning mb-2"></i>
                         <h6 class="fw-bold mb-1">
                             {% if LANGUAGE_CODE == 'en' %}Email{% elif LANGUAGE_CODE == 'pt' %}E-mail{% else %}Correo Electrónico{% endif %}
                         </h6>
@@ -41,9 +41,9 @@
             </div>
 
             <div class="col-12 col-md-4">
-                <a href="https://instagram.com/{{ SITIO.instagram }}" target="_blank" rel="noopener" class="text-decoration-none">
+                <a href="https://instagram.com/{{ SITIO.instagram }}" target="_blank" rel="noopener" class="text-decoration-none" aria-label="Instagram @{{ SITIO.instagram }} {% if LANGUAGE_CODE == 'en' %}(opens in a new tab){% elif LANGUAGE_CODE == 'pt' %}(abre em outra aba){% else %}(se abre en otra pestaña){% endif %}">
                     <div class="card h-100 bg-dark bg-opacity-25 text-light border border-light-subtle shadow-sm p-3 hover-card">
-                        <i class="bi bi-instagram fs-1 text-warning mb-2"></i>
+                        <i aria-hidden="true" class="bi bi-instagram fs-1 text-warning mb-2"></i>
                         <h6 class="fw-bold mb-1">Instagram</h6>
                         <span class="small text-light-50">@{{ SITIO.instagram }}</span>
                     </div>
@@ -62,34 +62,43 @@
                         {% csrf_token %}
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">
+                            <label class="form-label fw-bold" for="id_nombre">
                                 {% if LANGUAGE_CODE == 'en' %}Full Name{% elif LANGUAGE_CODE == 'pt' %}Nome e Sobrenome{% else %}Nombre y Apellido{% endif %}
                             </label>
                             {{ form.nombre }}
                             {% if form.nombre.errors %}
-                                <div class="text-danger small mt-1">{{ form.nombre.errors }}</div>
+                                <div class="text-danger small mt-1" id="id_nombre_error">{{ form.nombre.errors.0 }}</div>
                             {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">
+                            <label class="form-label fw-bold" for="id_correo">
                                 {% if LANGUAGE_CODE == 'en' %}Email Address{% elif LANGUAGE_CODE == 'pt' %}E-mail{% else %}Correo Electrónico{% endif %}
                             </label>
                             {{ form.correo }}
                             {% if form.correo.errors %}
-                                <div class="text-danger small mt-1">{{ form.correo.errors }}</div>
+                                <div class="text-danger small mt-1" id="id_correo_error">{{ form.correo.errors.0 }}</div>
                             {% endif %}
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">
+                            <label class="form-label fw-bold" for="id_mensaje">
                                 {% if LANGUAGE_CODE == 'en' %}Message{% elif LANGUAGE_CODE == 'pt' %}Mensagem{% else %}Mensaje{% endif %}
                             </label>
                             {{ form.mensaje }}
                             {% if form.mensaje.errors %}
-                                <div class="text-danger small mt-1">{{ form.mensaje.errors }}</div>
+                                <div class="text-danger small mt-1" id="id_mensaje_error">{{ form.mensaje.errors.0 }}</div>
                             {% endif %}
                         </div>
+
+                        <div class="form-check mb-4 consentimiento">
+                            {{ form.acepto_privacidad }}
+                            <label class="form-check-label small" for="{{ form.acepto_privacidad.id_for_label }}">
+                                {% if LANGUAGE_CODE == 'en' %}I accept the <a href="{% url 'privacidad' %}" target="_blank" rel="noopener" class="text-warning">Privacy Policy</a>: my name and email will only be used to answer this message.{% elif LANGUAGE_CODE == 'pt' %}Aceito a <a href="{% url 'privacidad' %}" target="_blank" rel="noopener" class="text-warning">Política de Privacidade</a>: meu nome e e-mail serão usados apenas para responder esta mensagem.{% else %}Acepto la <a href="{% url 'privacidad' %}" target="_blank" rel="noopener" class="text-warning">Política de privacidad</a>: mi nombre y correo solo se usarán para responder este mensaje.{% endif %}
+                            </label>
+                            {% if form.acepto_privacidad.errors %}<div class="text-danger small mt-1" id="id_acepto_privacidad_error">{{ form.acepto_privacidad.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="campo-trampa" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label>No completar este campo<input type="text" name="sitio_web" value="" tabindex="-1" autocomplete="off"></label></div>
 
                         <div class="text-center">
                             <button type="submit" class="btn btn-warning btn-lg px-5 rounded-pill font-serif fw-bold">
@@ -103,4 +112,4 @@
 
     </div>
 </section>
-{% endblock %}
+{% endblock %}

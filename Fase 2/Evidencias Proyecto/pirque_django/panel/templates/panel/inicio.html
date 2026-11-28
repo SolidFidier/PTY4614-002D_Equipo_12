@@ -2,20 +2,20 @@
 {% block content %}
 <!-- 1. Lo que necesita atención hoy -->
 <div class="tarjeta mb-3">
-  <h2 class="h4 mb-3"><i class="bi bi-bell me-2"></i>Qué necesita tu atención hoy</h2>
+  <h2 class="h4 mb-3"><i aria-hidden="true" class="bi bi-bell me-2"></i>Qué necesita tu atención hoy</h2>
   {% if tareas.reservas or tareas.mensajes %}
   <div class="row g-3">
     {% if tareas.reservas %}
     <div class="col-md-6"><a class="tarea" href="{% url 'panel:reservas_pendientes' %}">
       <span class="num">{{ tareas.reservas }}</span>
       <span class="flex-grow-1"><b>Reserva{{ tareas.reservas|pluralize }} por responder</b>{% if tareas.nuevas %}<br><span class="text-danger fw-bold">{{ tareas.nuevas }} nueva{{ tareas.nuevas|pluralize }} sin revisar</span>{% endif %}</span>
-      <i class="bi bi-chevron-right fs-3"></i></a></div>
+      <i aria-hidden="true" class="bi bi-chevron-right fs-3"></i></a></div>
     {% endif %}
     {% if tareas.mensajes %}
     <div class="col-md-6"><a class="tarea" href="{% url 'panel:mensajes' %}?estado=pendiente">
       <span class="num">{{ tareas.mensajes }}</span>
       <span class="flex-grow-1"><b>Mensaje{{ tareas.mensajes|pluralize }} sin responder</b><br>Escritos desde la página de contacto</span>
-      <i class="bi bi-chevron-right fs-3"></i></a></div>
+      <i aria-hidden="true" class="bi bi-chevron-right fs-3"></i></a></div>
     {% endif %}
   </div>
   {% else %}<p class="mb-0 fs-5">✅ Todo al día: no hay reservas ni mensajes pendientes.</p>{% endif %}
@@ -34,7 +34,7 @@
   <!-- 3. Ingresos: Este mes / Este año -->
   <div class="tarjeta mb-3" id="cardIngresos">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-      <h2 class="h4 mb-0"><i class="bi bi-cash-coin me-2"></i>Ingresos</h2>
+      <h2 class="h4 mb-0"><i aria-hidden="true" class="bi bi-cash-coin me-2"></i>Ingresos</h2>
       <div class="btn-group" role="group" aria-label="Elegir el período de los ingresos">
         <button type="button" class="btn btn-pirque" data-periodo="mes">Este mes</button>
         <button type="button" class="btn btn-outline-success" data-periodo="anio">Este año</button>
@@ -55,10 +55,11 @@
     <p class="text-muted mt-3 mb-0">Se suma el valor de las reservas marcadas como «Pagado», según su fecha de entrada. No se cuentan las canceladas.</p>
   </div>
 
-  <div class="tarjeta mb-3"><div class="d-flex justify-content-between flex-wrap gap-2 mb-2"><b class="fs-5"><i class="bi bi-graph-up me-2"></i>Ocupación (noches con reserva aceptada)</b>
-    <div class="d-flex gap-2"><select id="selAnio" class="form-select">{% for a in anios %}<option value="{{ a }}" {% if a == anio_actual %}selected{% endif %}>{% if a == anio_actual %}Año actual{% else %}{{ a }}{% endif %}</option>{% endfor %}</select>
-    <select id="selModo" class="form-select"><option value="meses">Por meses</option><option value="anios">Por años</option></select></div></div>
-    <canvas id="grafico" height="110"></canvas></div>
+  <div class="tarjeta mb-3"><div class="d-flex justify-content-between flex-wrap gap-2 mb-2"><b class="fs-5"><i aria-hidden="true" class="bi bi-graph-up me-2"></i>Ocupación (noches con reserva aceptada)</b>
+    <div class="d-flex gap-2"><select id="selAnio" class="form-select" aria-label="Año del gráfico">{% for a in anios %}<option value="{{ a }}" {% if a == anio_actual %}selected{% endif %}>{% if a == anio_actual %}Año actual{% else %}{{ a }}{% endif %}</option>{% endfor %}</select>
+    <select id="selModo" class="form-select" aria-label="Mostrar el gráfico por meses o por años"><option value="meses">Por meses</option><option value="anios">Por años</option></select></div></div>
+    <canvas id="grafico" height="110" role="img" aria-label="Gráfico de noches ocupadas"></canvas>
+    <p id="graficoTexto" class="visually-hidden" aria-live="polite"></p></div>
 
   <div class="tarjeta"><div class="d-flex justify-content-between mb-2"><b class="fs-5">Próximas reservas</b><a href="{% url 'panel:reservas' %}">Ver todas</a></div>
    <div class="table-responsive"><table class="table tabla"><thead><tr><th>Llegada</th><th>Salida</th><th>Huésped</th><th>Estado de la reserva</th><th>Estado del pago</th></tr></thead><tbody>
@@ -67,14 +68,14 @@
    {% empty %}<tr><td colspan="5" class="text-center text-muted">No hay reservas próximas.</td></tr>{% endfor %}</tbody></table></div></div>
  </div>
  <div class="col-xl-3">
-  <div class="tarjeta mb-3"><b class="fs-5"><i class="bi bi-clock me-2"></i>Lo último que pasó</b>
-   {% for f, t, s, ic in eventos %}<div class="d-flex gap-2 mt-3"><i class="bi {{ ic }} fs-4 text-success"></i><div class="flex-grow-1"><b class="d-block">{{ t }}</b><span class="text-muted">{{ s }}</span></div><span class="text-muted">{{ f|date:"d/m H:i" }}</span></div>
+  <div class="tarjeta mb-3"><b class="fs-5"><i aria-hidden="true" class="bi bi-clock me-2"></i>Lo último que pasó</b>
+   {% for f, t, s, ic in eventos %}<div class="d-flex gap-2 mt-3"><i aria-hidden="true" class="bi {{ ic }} fs-4 text-success"></i><div class="flex-grow-1"><b class="d-block">{{ t }}</b><span class="text-muted">{{ s }}</span></div><span class="text-muted">{{ f|date:"d/m H:i" }}</span></div>
    {% empty %}<p class="text-muted mt-3 mb-0">Todavía no hay actividad.</p>{% endfor %}</div>
-  <div class="tarjeta"><b class="fs-5"><i class="bi bi-lightning me-2"></i>Accesos rápidos</b>
-   <a class="btn btn-light w-100 text-start mt-3" href="{% url 'panel:reservas_pendientes' %}"><i class="bi bi-hourglass-split me-2"></i>Reservas pendientes</a>
-   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:mensajes' %}"><i class="bi bi-envelope me-2"></i>Mensajes</a>
-   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:resenas' %}"><i class="bi bi-star me-2"></i>Reseñas</a>
-   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:ayuda' %}"><i class="bi bi-question-circle me-2"></i>Ayuda</a></div>
+  <div class="tarjeta"><b class="fs-5"><i aria-hidden="true" class="bi bi-lightning me-2"></i>Accesos rápidos</b>
+   <a class="btn btn-light w-100 text-start mt-3" href="{% url 'panel:reservas_pendientes' %}"><i aria-hidden="true" class="bi bi-hourglass-split me-2"></i>Reservas pendientes</a>
+   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:mensajes' %}"><i aria-hidden="true" class="bi bi-envelope me-2"></i>Mensajes</a>
+   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:resenas' %}"><i aria-hidden="true" class="bi bi-star me-2"></i>Reseñas</a>
+   <a class="btn btn-light w-100 text-start mt-2" href="{% url 'panel:ayuda' %}"><i aria-hidden="true" class="bi bi-question-circle me-2"></i>Ayuda</a></div>
  </div>
 </div>{% endblock %}
 {% block scripts %}
@@ -97,6 +98,9 @@ async function dibujar() {
   selAnio.disabled = selModo.value === 'anios'; ch?.destroy();
   ch = new Chart(grafico, {type: 'line', data: {labels: d.labels, datasets: [{data: d.data, borderColor: '#1f6b4f', backgroundColor: 'rgba(31,107,79,.15)', fill: true, tension: .3}]},
     options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true, max: d.max ?? undefined, suggestedMax: d.max ? undefined : Math.max(...d.data, 1) * 1.15}}}});
+  // Lo mismo en texto, para lectores de pantalla (WCAG 1.1.1)
+  const resumen = 'Noches ocupadas ' + (selModo.value === 'anios' ? 'por año' : `por mes en ${selAnio.value}`) + ': ' + d.labels.map((l, i) => `${l} ${d.data[i]}`).join(', ') + '.';
+  grafico.setAttribute('aria-label', resumen); graficoTexto.textContent = resumen;
 }
 selModo.onchange = selAnio.onchange = dibujar; dibujar();
 </script>{% endblock %}

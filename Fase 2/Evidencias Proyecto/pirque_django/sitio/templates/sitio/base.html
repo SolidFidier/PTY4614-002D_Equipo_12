@@ -11,9 +11,12 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
+  <link href="{% static 'css/accesibilidad.css' %}" rel="stylesheet">
+  <script>/* Opciones de accesibilidad guardadas (se aplican antes de mostrar la página) */try{var a11y=JSON.parse(localStorage.getItem('pirque_a11y'))||{},c=document.documentElement.classList;if(a11y.texto)c.add('a11y-texto-'+a11y.texto);['contraste','subrayar','espaciado','legible','sin-animaciones'].forEach(function(o){if(a11y[o])c.add('a11y-'+o)})}catch(e){}</script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+  {% load idioma_tags %}<a class="saltar-contenido" href="#contenido">{% t "Saltar al contenido principal" "Skip to main content" "Pular para o conteúdo principal" %}</a>
   <header class="hero {% block hero_class %}hero-sm{% endblock %}" style="background-image:url('{% block hero_img %}{% static 'img/jardin.jpg' %}{% endblock %}')">
     <div class="hero-overlay"></div>
     <div class="container position-relative">
@@ -25,11 +28,12 @@
         <a href="{% url 'inicio' %}"><img src="{% static 'img/logo.svg' %}" alt="{{ SITIO.nombre }}" class="logo"></a>
         <!-- SECCIÓN USUARIO / INICIAR SESIÓN -->
         <div class="user-auth-area d-flex justify-content-end align-items-center gap-2 flex-wrap">
+            {% include "accesibilidad/_menu.html" %}
             <!-- SELECTOR DE IDIOMA -->
             {% get_available_languages as LANGUAGES %}
             <div class="dropdown language-selector">
-                <button class="btn btn-outline-warning rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-1 font-serif text-light" type="button" id="langMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Idioma / Language">
-                    🌐 <span>{% for code, name in LANGUAGES %}{% if code == LANGUAGE_CODE %}{{ name }}{% endif %}{% endfor %}</span>
+                <button class="btn btn-outline-warning rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-1 font-serif text-light" type="button" id="langMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span aria-hidden="true">🌐</span> <span class="visually-hidden">Idioma / Language / Idioma:</span> <span>{% for code, name in LANGUAGES %}{% if code == LANGUAGE_CODE %}{{ name }}{% endif %}{% endfor %}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="langMenu">
                     {% for lang_code, lang_name in LANGUAGES %}
@@ -37,8 +41,8 @@
                         <form action="{% url 'set_language' %}" method="POST" class="m-0">
                             {% csrf_token %}
                             <input name="next" type="hidden" value="{{ request.get_full_path }}">
-                            <button type="submit" name="language" value="{{ lang_code }}" class="dropdown-item {% if lang_code == LANGUAGE_CODE %}active{% endif %}">
-                                {% if lang_code == 'es' %}🇪🇸{% elif lang_code == 'pt' %}🇧🇷{% else %}🇬🇧{% endif %} {{ lang_name }}
+                            <button type="submit" name="language" value="{{ lang_code }}" lang="{{ lang_code }}" class="dropdown-item {% if lang_code == LANGUAGE_CODE %}active{% endif %}" {% if lang_code == LANGUAGE_CODE %}aria-current="true"{% endif %}>
+                                <span aria-hidden="true">{% if lang_code == 'es' %}🇪🇸{% elif lang_code == 'pt' %}🇧🇷{% else %}🇬🇧{% endif %}</span> {{ lang_name }}
                             </button>
                         </form>
                     </li>
@@ -49,7 +53,7 @@
             {% if huesped %}
                 <div class="dropdown">
                     <button class="btn btn-outline-warning rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-1 font-serif text-light" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        👤 <span>{{ huesped.nombre }}</span>
+                        <span aria-hidden="true">👤</span> <span>{{ huesped.nombre }}</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="userMenu">
                         <li><a class="dropdown-item" href="{% url 'reservar' %}">📅 {% if LANGUAGE_CODE == 'en' %}Book Cabin{% elif LANGUAGE_CODE == 'pt' %}Reservar Cabana{% else %}Reservar Cabaña{% endif %}</a></li>
@@ -67,29 +71,29 @@
       </div>
 
       <!-- Menú de Navegación Principal -->
-      <nav class="navbar navbar-expand-lg navbar-dark justify-content-center">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Menú">
+      <nav class="navbar navbar-expand-lg navbar-dark justify-content-center" aria-label="{% t 'Menú principal' 'Main menu' 'Menu principal' %}">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="{% t 'Menú principal' 'Main menu' 'Menu principal' %}">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-center flex-grow-0" id="menu">
           <ul class="navbar-nav menu">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'inicio' %}">{% if LANGUAGE_CODE == 'en' %}Home{% elif LANGUAGE_CODE == 'pt' %}Início{% else %}Inicio{% endif %}</a>
+              <a class="nav-link" href="{% url 'inicio' %}"{% if request.resolver_match.url_name == 'inicio' %} aria-current="page"{% endif %}>{% if LANGUAGE_CODE == 'en' %}Home{% elif LANGUAGE_CODE == 'pt' %}Início{% else %}Inicio{% endif %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'servicios' %}">{% if LANGUAGE_CODE == 'en' %}Services{% elif LANGUAGE_CODE == 'pt' %}Serviços{% else %}Servicios{% endif %}</a>
+              <a class="nav-link" href="{% url 'servicios' %}"{% if request.resolver_match.url_name == 'servicios' %} aria-current="page"{% endif %}>{% if LANGUAGE_CODE == 'en' %}Services{% elif LANGUAGE_CODE == 'pt' %}Serviços{% else %}Servicios{% endif %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'quienes_somos' %}">{% if LANGUAGE_CODE == 'en' %}About Us{% elif LANGUAGE_CODE == 'pt' %}Quem Somos{% else %}Quienes somos{% endif %}</a>
+              <a class="nav-link" href="{% url 'quienes_somos' %}"{% if request.resolver_match.url_name == 'quienes_somos' %} aria-current="page"{% endif %}>{% if LANGUAGE_CODE == 'en' %}About Us{% elif LANGUAGE_CODE == 'pt' %}Quem Somos{% else %}Quienes somos{% endif %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'como_llegar' %}">{% if LANGUAGE_CODE == 'en' %}How to get here{% elif LANGUAGE_CODE == 'pt' %}Como Chegar{% else %}Como llegar{% endif %}</a>
+              <a class="nav-link" href="{% url 'como_llegar' %}"{% if request.resolver_match.url_name == 'como_llegar' %} aria-current="page"{% endif %}>{% if LANGUAGE_CODE == 'en' %}How to get here{% elif LANGUAGE_CODE == 'pt' %}Como Chegar{% else %}Como llegar{% endif %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'reservar' %}">{% if LANGUAGE_CODE == 'en' %}Book Now{% elif LANGUAGE_CODE == 'pt' %}Reservar{% else %}Reservar{% endif %}</a>
+              <a class="nav-link" href="{% url 'reservar' %}"{% if request.resolver_match.url_name == 'reservar' %} aria-current="page"{% endif %}>{% if LANGUAGE_CODE == 'en' %}Book Now{% elif LANGUAGE_CODE == 'pt' %}Reservar{% else %}Reservar{% endif %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'contacto' %}">{% if LANGUAGE_CODE == 'en' %}Contact{% elif LANGUAGE_CODE == 'pt' %}Contato{% else %}Contacto{% endif %}</a>
+              <a class="nav-link" href="{% url 'contacto' %}"{% if request.resolver_match.url_name == 'contacto' %} aria-current="page"{% endif %}>{% if LANGUAGE_CODE == 'en' %}Contact{% elif LANGUAGE_CODE == 'pt' %}Contato{% else %}Contacto{% endif %}</a>
             </li>
           </ul>
         </div>
@@ -105,17 +109,17 @@
   </div>
   {% endif %}
 
-  <main>{% block content %}{% endblock %}</main>
+  <main id="contenido" tabindex="-1">{% block content %}{% endblock %}</main>
 
   <footer class="site-footer">
     <div class="container pie-grid">
       <small>Copyright © 2026 {{ SITIO.nombre }}</small>
       <div class="social">
-        <a href="https://instagram.com/{{ SITIO.instagram }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-        <a href="mailto:{{ SITIO.email }}" aria-label="Correo"><i class="bi bi-envelope"></i></a>
-        <a href="https://wa.me/{{ SITIO.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+        <a href="https://instagram.com/{{ SITIO.instagram }}" target="_blank" rel="noopener" aria-label="Instagram {% t '(se abre en otra pestaña)' '(opens in a new tab)' '(abre em outra aba)' %}"><i class="bi bi-instagram" aria-hidden="true"></i></a>
+        <a href="mailto:{{ SITIO.email }}" aria-label="{% t 'Correo' 'Email' 'E-mail' %}"><i class="bi bi-envelope" aria-hidden="true"></i></a>
+        <a href="https://wa.me/{{ SITIO.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp {% t '(se abre en otra pestaña)' '(opens in a new tab)' '(abre em outra aba)' %}"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
       </div>
-      <small>{{ SITIO.direccion }}</small>
+      <small>{{ SITIO.direccion }} · <a href="{% url 'privacidad' %}" class="link-privacidad">{% if LANGUAGE_CODE == 'en' %}Privacy Policy{% elif LANGUAGE_CODE == 'pt' %}Política de Privacidade{% else %}Política de privacidad{% endif %}</a></small>
     </div>
   </footer>
 
@@ -127,5 +131,6 @@
     };
   </script>
   <script src="{% static 'js/sitio.js' %}"></script>
+  <script src="{% static 'js/accesibilidad.js' %}"></script>
 </body>
-</html>
+</html>

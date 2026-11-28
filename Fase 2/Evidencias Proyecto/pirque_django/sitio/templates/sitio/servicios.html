@@ -18,9 +18,9 @@
         
         <!-- Carrusel de imágenes (las que tengan «carrusel» en el nombre, en static/img) -->
         {% if carrusel %}
-        <div id="carruselServicios" class="carousel slide carousel-fade carrusel-servicios mx-auto mb-5 shadow-lg" data-bs-ride="carousel" data-bs-interval="4500">
+        <div id="carruselServicios" class="carousel slide carousel-fade carrusel-servicios mx-auto mb-5 shadow-lg" data-bs-ride="carousel" data-bs-interval="4500" role="region" aria-roledescription="carrusel" aria-label="{% t 'Fotos del hospedaje' 'Photos of the lodge' 'Fotos da hospedagem' %}">
             <div class="carousel-indicators">
-                {% for img in carrusel %}<button type="button" data-bs-target="#carruselServicios" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="{{ forloop.counter }}"></button>{% endfor %}
+                {% for img in carrusel %}<button type="button" data-bs-target="#carruselServicios" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="{% t 'Imagen' 'Image' 'Imagem' %} {{ forloop.counter }}"></button>{% endfor %}
             </div>
             <div class="carousel-inner">
                 {% for img in carrusel %}
@@ -28,6 +28,7 @@
                 {% endfor %}
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#carruselServicios" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">{% t "Anterior" "Previous" "Anterior" %}</span></button>
+            <button class="carrusel-pausa" type="button" data-pausar="{% t 'Pausar' 'Pause' 'Pausar' %}" data-reanudar="{% t 'Reanudar' 'Play' 'Retomar' %}"><span>{% t 'Pausar' 'Pause' 'Pausar' %}</span><span class="visually-hidden"> {% t 'el cambio automático de imágenes' 'the automatic slideshow' 'a troca automática de imagens' %}</span></button>
             <button class="carousel-control-next" type="button" data-bs-target="#carruselServicios" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">{% t "Siguiente" "Next" "Próximo" %}</span></button>
         </div>
         {% endif %}
@@ -128,25 +129,25 @@
             </h4>
             <div class="row text-center">
                 <div class="col-3">
-                    <i class="bi bi-cup-hot fs-2 text-warning"></i>
+                    <i aria-hidden="true" class="bi bi-cup-hot fs-2 text-warning"></i>
                     <div class="fw-bold mt-2">
                         {% if LANGUAGE_CODE == 'en' %}Breakfast{% elif LANGUAGE_CODE == 'pt' %}Café da manhã{% else %}Desayuno{% endif %}
                     </div>
                 </div>
                 <div class="col-3">
-                    <i class="bi bi-egg-fried fs-2 text-warning"></i>
+                    <i aria-hidden="true" class="bi bi-egg-fried fs-2 text-warning"></i>
                     <div class="fw-bold mt-2">
                         {% if LANGUAGE_CODE == 'en' %}Lunch{% elif LANGUAGE_CODE == 'pt' %}Almoço{% else %}Almuerzo{% endif %}
                     </div>
                 </div>
                 <div class="col-3">
-                    <i class="bi bi-cup-straw fs-2 text-warning"></i>
+                    <i aria-hidden="true" class="bi bi-cup-straw fs-2 text-warning"></i>
                     <div class="fw-bold mt-2">
                         {% if LANGUAGE_CODE == 'en' %}Afternoon Tea{% elif LANGUAGE_CODE == 'pt' %}Lanche da tarde{% else %}Once{% endif %}
                     </div>
                 </div>
                 <div class="col-3">
-                    <i class="bi bi-moon-stars fs-2 text-warning"></i>
+                    <i aria-hidden="true" class="bi bi-moon-stars fs-2 text-warning"></i>
                     <div class="fw-bold mt-2">
                         {% if LANGUAGE_CODE == 'en' %}Dinner{% elif LANGUAGE_CODE == 'pt' %}Jantar{% else %}Cena{% endif %}
                     </div>
@@ -156,4 +157,4 @@
 
     </div>
 </section>
-{% endblock %}
+{% endblock %}

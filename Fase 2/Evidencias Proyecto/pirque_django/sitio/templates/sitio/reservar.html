@@ -28,8 +28,8 @@
 
                 <form method="post" id="formReserva" novalidate>
                     {% csrf_token %}
-                    <input type="hidden" name="llegada" id="id_llegada" value="{{ form.llegada.value|default:'' }}">
-                    <input type="hidden" name="salida" id="id_salida" value="{{ form.salida.value|default:'' }}">
+                    <p class="small text-center mb-2" id="ayudaCalendario">{% t "Elige el día de llegada y luego el de salida en el calendario, o escríbelos en «Escribir las fechas»." "Pick your check-in day and then your check-out day on the calendar, or type them under “Type the dates”." "Escolha o dia de chegada e depois o de saída no calendário, ou digite-os em «Digitar as datas»." %}</p>
+                    <div class="campo-trampa" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label>No completar este campo<input type="text" name="sitio_web" value="" tabindex="-1" autocomplete="off"></label></div>
 
                     <input type="hidden" id="calendario">
                     <div class="mb-2"></div>
@@ -39,7 +39,17 @@
                         <span><i class="cuadro elegido"></i> {% t "Tu selección" "Your selection" "Sua seleção" %}</span>
                     </div>
                     <div id="resumenFechas" class="text-center fw-bold mb-1" aria-live="polite"></div>
-                    <div id="errFechas" class="text-center text-danger small fw-bold mb-3"></div>
+                    <div id="errFechas" class="text-center text-danger small fw-bold mb-3" role="alert"></div>
+                    <!-- Alternativa al calendario para teclado y lectores de pantalla (WCAG 2.1.1): las mismas fechas en campos normales -->
+                    <details class="fechas-manual mb-3" {% if form.llegada.errors or form.salida.errors %}open{% endif %}>
+                        <summary>{% t "Escribir las fechas" "Type the dates" "Digitar as datas" %}</summary>
+                        <div class="row g-3 mt-1">
+                            <div class="col-sm-6"><label class="form-label small mb-1" for="id_llegada">{% t "Fecha de llegada" "Check-in date" "Data de chegada" %}</label>
+                                <input type="date" name="llegada" id="id_llegada" class="form-control" value="{{ form.llegada.value|default:'' }}" aria-describedby="errFechas"></div>
+                            <div class="col-sm-6"><label class="form-label small mb-1" for="id_salida">{% t "Fecha de salida" "Check-out date" "Data de saída" %}</label>
+                                <input type="date" name="salida" id="id_salida" class="form-control" value="{{ form.salida.value|default:'' }}" aria-describedby="errFechas"></div>
+                        </div>
+                    </details>
 
                     <hr class="border-secondary">
                     <h3 class="h6 font-serif text-warning mb-3">👥 {% t "Huéspedes" "Guests" "Hóspedes" %}</h3>
@@ -49,12 +59,12 @@
                     </div>
 
                     <div class="nota-whatsapp rounded-3 p-3 small mb-4">
-                        <i class="bi bi-whatsapp me-1"></i>
+                        <i aria-hidden="true" class="bi bi-whatsapp me-1"></i>
                         {% t "Nuestro servicio es <strong>exclusivo para tu grupo</strong>. Al continuar abriremos WhatsApp con un mensaje listo para enviar. Tu solicitud queda <em>pendiente</em> hasta que la confirmemos." "Our service is <strong>exclusive to your group</strong>. When you continue we will open WhatsApp with a ready-to-send message. Your request stays <em>pending</em> until we confirm it." "Nosso serviço é <strong>exclusivo para o seu grupo</strong>. Ao continuar abriremos o WhatsApp com uma mensagem pronta para enviar. Sua solicitação fica <em>pendente</em> até a confirmarmos." %}
                     </div>
 
                     <div class="text-center">
-                        <button type="submit" class="btn btn-whatsapp btn-lg rounded-pill px-5 fw-bold"><i class="bi bi-whatsapp me-2"></i>{% t "Continuar por WhatsApp" "Continue on WhatsApp" "Continuar pelo WhatsApp" %}</button>
+                        <button type="submit" class="btn btn-whatsapp btn-lg rounded-pill px-5 fw-bold"><i aria-hidden="true" class="bi bi-whatsapp me-2"></i>{% t "Continuar por WhatsApp" "Continue on WhatsApp" "Continuar pelo WhatsApp" %}</button>
                     </div>
                 </form>
             </div>
@@ -72,6 +82,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         ocupado: "{% t 'Fecha ocupada' 'Date taken' 'Data ocupada' %}",
         cruza: "{% t 'Ese rango incluye fechas ocupadas. Elige otras fechas.' 'That range includes taken dates. Please choose other dates.' 'Esse período inclui datas ocupadas. Escolha outras datas.' %}",
         pide: "{% t 'Selecciona llegada y salida en el calendario.' 'Select check-in and check-out on the calendar.' 'Selecione chegada e saída no calendário.' %}",
+        orden: "{% t 'La fecha de salida debe ser posterior a la de llegada.' 'The check-out date must be after check-in.' 'A data de saída deve ser posterior à de chegada.' %}",
         noches: "{% t 'noche(s)' 'night(s)' 'noite(s)' %}",
         llegada: "{% t 'Llegada' 'Check-in' 'Chegada' %}",
         salida: "{% t 'Salida' 'Check-out' 'Saída' %}"
@@ -92,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         resumen.textContent = a && b ? `${T.llegada}: ${flatpickr.formatDate(a, "d/m/Y")} → ${T.salida}: ${flatpickr.formatDate(b, "d/m/Y")} (${Math.round((b - a) / 864e5)} ${T.noches})` : "";
     };
 
-    flatpickr("#calendario", {
+    const fp = flatpickr("#calendario", {
         inline: true, mode: "range", minDate: "today", showMonths: window.innerWidth >= 768 ? 2 : 1, dateFormat: "Y-m-d",
         locale: lang === "en" ? "default" : lang, defaultDate: previas, disable: ocupadas.map(o => ({from: o.from, to: o.to})),
         // Las fechas ocupadas se pintan en rojo (y no solo se deshabilitan)
@@ -106,6 +117,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
     if (previas) pintarResumen(dia(previas[0]), dia(previas[1]));
+    llegada.min = salida.min = iso(new Date());
+    // Fechas escritas a mano: se revisan igual que en el calendario y se marcan en él
+    const desdeCampos = () => {
+        errores.textContent = "";
+        if (!llegada.value || !salida.value) { pintarResumen(); return; }
+        const a = dia(llegada.value), b = dia(salida.value);
+        if (b <= a) { errores.textContent = T.orden; pintarResumen(); return; }
+        if (!rangoLibre(a, b)) { errores.textContent = T.cruza; pintarResumen(); return; }
+        fp.setDate([a, b], false); pintarResumen(a, b);
+    };
+    llegada.addEventListener("change", desdeCampos); salida.addEventListener("change", desdeCampos);
     document.getElementById("formReserva").addEventListener("submit", e => {
         if (!llegada.value || !salida.value) { e.preventDefault(); errores.textContent = T.pide; }
     });

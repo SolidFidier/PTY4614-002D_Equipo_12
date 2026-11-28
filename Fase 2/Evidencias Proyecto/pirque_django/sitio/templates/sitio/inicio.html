@@ -54,7 +54,7 @@
             <div class="col">
                 <div class="card h-100 resena-card bg-dark bg-opacity-25 border border-light-subtle text-light shadow">
                     <div class="card-body p-4 d-flex flex-column">
-                        <div class="estrellas mb-2" aria-label="{{ r.calificacion }}/5">{% for i in r.estrellas %}★{% endfor %}{% for i in r.vacias %}<span class="vacia">★</span>{% endfor %}</div>
+                        <div class="estrellas mb-2" role="img" aria-label="{% t 'Calificación' 'Rating' 'Nota' %}: {{ r.calificacion }}/5">{% for i in r.estrellas %}★{% endfor %}{% for i in r.vacias %}<span class="vacia">★</span>{% endfor %}</div>
                         <p class="fst-italic flex-grow-1 mb-3">{% if r.comentario %}“{{ r.comentario }}”{% endif %}</p>
                         <div class="small"><strong>{{ r.nombre_publico }}</strong> · <span class="opacity-75">{{ r.fecha_resena|date:"F Y" }}</span></div>
                     </div>

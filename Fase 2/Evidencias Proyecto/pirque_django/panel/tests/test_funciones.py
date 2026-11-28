@@ -1,4 +1,4 @@
-"""Pruebas funcionales (P1 a P97) de la hoja «Pruebas» del Plan de pruebas.
+"""Pruebas funcionales (P1 a P116) de la hoja «Funcionalidades» del Plan de pruebas.
 
 Cada método test_PNN_... corresponde a la fila PNN y, al aprobarse, registra el resultado concreto que obtuvo.
 """
@@ -8,6 +8,7 @@ from io import StringIO
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
 from django.core import mail
 from django.core.management import call_command
@@ -126,7 +127,8 @@ class H1Reserva(Base):
         self.assertIn(reverse("login_cliente"), destino)
         self.assertIn("next=", destino)
         r = self.client.post(f"{reverse('login_cliente')}?next={reverse('reservar')}",
-                             {"nombre": "Juan", "apellido": "Pérez", "correo": CORREO, "rut": RUT, "telefono": "56912345678"})
+                             {"nombre": "Juan", "apellido": "Pérez", "correo": CORREO, "rut": RUT, "telefono": "56912345678",
+                              "acepto_privacidad": "on"})
         self.assertEqual(r["Location"], reverse("reservar"))
         self.obt(f"Sin sesión, /reservar/ redirigió a {destino}; al identificarse volvió a {r['Location']}.")
 
@@ -699,7 +701,8 @@ class H11Gestion(Base):
 # =====================================================================  H12
 class H12Contacto(Base):
     def test_P72_enviar_mensaje(self):
-        r = self.client.post(reverse("contacto"), {"nombre": "Ana Rojas", "correo": "ana@correo.com", "mensaje": "¿Tienen fechas en enero?"}, follow=True)
+        r = self.client.post(reverse("contacto"), {"nombre": "Ana Rojas", "correo": "ana@correo.com", "mensaje": "¿Tienen fechas en enero?",
+                                                   "acepto_privacidad": "on"}, follow=True)
         self.assertContains(r, "Mensaje enviado. Te responderemos pronto.")
         msj = Mensaje.objects.get(correo="ana@correo.com")
         m = [m for m in mail.outbox if "Nuevo mensaje de contacto" in m.subject]
@@ -710,7 +713,8 @@ class H12Contacto(Base):
 
     def test_P73_mensaje_invalido(self):
         errores = []
-        for datos in ({"nombre": "Ana", "correo": "no-es-correo", "mensaje": "Hola"}, {"nombre": "Ana", "correo": "ana@c.cl", "mensaje": ""}):
+        for datos in ({"nombre": "Ana", "correo": "no-es-correo", "mensaje": "Hola", "acepto_privacidad": "on"},
+                      {"nombre": "Ana", "correo": "ana@c.cl", "mensaje": "", "acepto_privacidad": "on"}):
             r = self.client.post(reverse("contacto"), datos)
             self.assertEqual(r.status_code, 200)
             self.assertTrue(r.context["form"].errors)
@@ -1007,3 +1011,242 @@ class H14Configuracion(Base):
         self.admin.refresh_from_db()
         self.assertTrue(self.admin.check_password(CLAVE))
         self.obt(f"Con dos contraseñas distintas el formulario mostró «{error}» y la contraseña no cambió.")
+
+
+# =====================================================================  H16
+class H16Trazabilidad(Base):
+    """Quién modificó cada reserva, sus datos originales y restaurarlos (columna FK_admin y datos_originales de reservas)."""
+
+    def test_P98_lista_muestra_quien_modifico(self):
+        self.admin.first_name, self.admin.last_name = "Marta", "Rojas"
+        self.admin.save()
+        res = self.reserva(d(6), d(8))
+        self.assertTrue(self.editar(res, monto=90000)["ok"])
+        r = self.adm.get(reverse("panel:reservas"))
+        self.assertContains(r, "Último cambio")
+        fila = next(x for x in r.context["lista"] if x.id == res.id)
+        self.assertEqual(fila.admin_nombre, "Marta Rojas")
+        self.assertContains(r, "Marta Rojas")
+        res.refresh_from_db()
+        self.assertEqual(res.admin_id, self.admin.id)
+        self.assertIsNotNone(res.fecha_modificacion)
+        self.obt(f"Tras editar la reserva #{res.id}, la columna «Último cambio» de la lista mostró «{fila.admin_nombre}» y la fecha "
+                 f"{timezone.localtime(res.fecha_modificacion):%d/%m/%Y %H:%M}; en la base quedó FK_admin = {res.admin_id}.")
+
+    def test_P99_reserva_sin_cambios(self):
+        res = self.reserva(d(6), d(8))
+        html = self.adm.get(reverse("panel:reservas")).content.decode()
+        self.assertIn("Sin cambios", html)
+        self.assertNotIn(reverse("panel:reserva_originales", args=[res.id]), html)
+        self.assertIn("Esta reserva no ha sido modificada", html)
+        self.obt(f"La reserva #{res.id}, que nadie ha modificado, mostró «Sin cambios» en la lista y su ventana no ofrece ver ni restaurar "
+                 "datos originales («Esta reserva no ha sido modificada: sus datos son los originales»).")
+
+    def test_P100_aceptar_registra_admin_y_originales(self):
+        res = self.reserva(d(6), d(8))
+        self.assertTrue(self.adm.post(reverse("panel:reserva_aceptar", args=[res.id])).json()["ok"])
+        res.refresh_from_db()
+        self.assertEqual(res.estado_reserva, "aceptada")
+        self.assertEqual(res.admin_id, self.admin.id)
+        self.assertEqual(res.datos_originales["estado_reserva"], "pendiente")
+        self.obt(f"Al aceptar la reserva #{res.id} quedó FK_admin = {res.admin_id} (admin) y se guardaron sus datos originales "
+                 f"(estado original «{res.datos_originales['estado_reserva']}»).")
+
+    def test_P101_guardar_sin_cambios_no_marca(self):
+        res = self.reserva(d(6), d(8), vista=False)
+        self.assertTrue(self.editar(res)["ok"])
+        res.refresh_from_db()
+        self.assertIsNone(res.fecha_modificacion)
+        self.assertIsNone(res.admin_id)
+        self.assertIsNone(res.datos_originales)
+        self.assertTrue(res.vista)
+        self.obt(f"Al abrir y guardar la reserva #{res.id} sin cambiar ningún dato no se registró un cambio (FK_admin y fecha de "
+                 "modificación siguieron vacíos), solo dejó de destacarse como «Nueva».")
+
+    def test_P102_originales_se_guardan_una_sola_vez(self):
+        ana, c2 = self.admin2()
+        res = self.reserva(d(6), d(8))
+        self.editar(res, monto=100000)
+        res.refresh_from_db()
+        self.editar(res, c=c2, monto=120000, notas="Llega tarde")
+        res.refresh_from_db()
+        self.assertEqual(res.datos_originales["monto"], 0)
+        self.assertEqual(res.datos_originales["notas"], "")
+        self.assertEqual((res.monto, res.admin_id), (120000, ana.id))
+        self.obt(f"Después de dos cambios (admin: valor $100.000; Ana Soto: valor $120.000 y una nota) el último cambio quedó a nombre "
+                 f"de Ana Soto y los datos originales siguieron siendo los del principio (valor {res.datos_originales['monto']}, sin notas).")
+
+    def test_P103_ver_datos_originales(self):
+        res = self.reserva(d(6), d(8))
+        self.editar(res, monto=150000, fecha_salida=d(9).isoformat(), estado_pago="abonado")
+        j = self.adm.get(reverse("panel:reserva_originales", args=[res.id])).json()
+        self.assertTrue(j["ok"] and j["modificada"])
+        self.assertEqual(j["cambios"], 3)
+        cambiados = {x["dato"]: (x["original"], x["actual"]) for x in j["filas"] if x["cambio"]}
+        self.assertEqual(cambiados["Valor de la estadía"], ("Por definir", "$150.000"))
+        self.assertEqual(cambiados["Fecha de salida"], (f(d(8)), f(d(9))))
+        self.assertEqual(cambiados["Estado del pago"], ("Pendiente", "Abonado"))
+        self.assertEqual(j["por"], "admin")
+        self.obt(f"«Ver datos originales» de la reserva #{res.id} mostró {len(j['filas'])} datos y marcó {j['cambios']} cambios: "
+                 + "; ".join(f"{k}: {o} → {a}" for k, (o, a) in cambiados.items()) + f". Último cambio: {j['por']}, {j['fecha']}.")
+
+    def test_P104_ver_originales_de_reserva_sin_cambios(self):
+        res = self.reserva(d(6), d(8))
+        j = self.adm.get(reverse("panel:reserva_originales", args=[res.id])).json()
+        self.assertTrue(j["ok"])
+        self.assertFalse(j["modificada"])
+        self.assertIn("no ha sido modificada", j["aviso"])
+        self.obt(f"Para la reserva #{res.id} sin cambios la consulta respondió «{j['aviso']}».")
+
+    def test_P105_restaurar_datos_originales(self):
+        ana, c2 = self.admin2()
+        res = self.reserva(d(6), d(8))
+        self.editar(res, monto=150000, estado_reserva="aceptada", estado_pago="pagado", notas="Cambio de prueba", cant_adultos=4)
+        j = c2.post(reverse("panel:reserva_restaurar", args=[res.id])).json()
+        self.assertTrue(j["ok"], j)
+        self.assertIn("volvió a sus datos originales", j["aviso"])
+        res.refresh_from_db()
+        self.assertEqual((res.monto, res.estado_reserva, res.estado_pago, res.notas, res.cant_adultos), (0, "pendiente", "pendiente", "", 1))
+        self.assertEqual(res.admin_id, ana.id)
+        self.assertEqual(res.datos_originales["monto"], 0)
+        self.obt(f"Con la confirmación aceptada, «Restaurar datos originales» devolvió la reserva #{res.id} a valor $0, estado «pendiente», "
+                 f"pago «pendiente», 1 adulto y sin notas; el panel avisó «{j['aviso']}», el último cambio quedó a nombre de Ana Soto y "
+                 "los datos originales siguen guardados.")
+
+    def test_P106_restaurar_bloqueado_por_fechas_ocupadas(self):
+        res = self.reserva(d(6), d(9), estado="aceptada")
+        self.editar(res, estado_reserva="cancelada", estado_pago="cancelado")
+        otra = self.reserva(d(7), d(8), estado="aceptada", doc="111111111")
+        r = self.adm.post(reverse("panel:reserva_restaurar", args=[res.id]))
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("No se puede restaurar", r.json()["error"])
+        res.refresh_from_db()
+        self.assertEqual(res.estado_reserva, "cancelada")
+        self.obt(f"La reserva #{res.id} estaba aceptada originalmente y ahora la #{otra.id} ocupa esas fechas: al restaurar el panel respondió "
+                 f"{r.status_code} «{r.json()['error'][:90]}…» y la reserva siguió «{res.estado_reserva}».")
+
+    def test_P107_restaurar_reserva_sin_cambios(self):
+        res = self.reserva(d(6), d(8))
+        r = self.adm.post(reverse("panel:reserva_restaurar", args=[res.id]))
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("no ha sido modificada", r.json()["error"])
+        self.obt(f"Restaurar la reserva #{res.id} sin cambios respondió {r.status_code}: «{r.json()['error']}».")
+
+    def test_P108_botones_y_confirmacion_en_la_ventana(self):
+        res = self.reserva(d(6), d(8))
+        self.editar(res, monto=50000)
+        html = self.adm.get(reverse("panel:reservas")).content.decode()
+        for texto in ("Ver datos originales", "Restaurar datos originales", "¿Restaurar los datos originales de esta reserva?",
+                      reverse("panel:reserva_originales", args=[res.id]), reverse("panel:reserva_restaurar", args=[res.id])):
+            self.assertIn(texto, html)
+        js = open(finders.find("panel/js/panel.js"), encoding="utf-8").read()
+        self.assertIn("confirm(p.dataset.msg)", js)
+        self.obt("La ventana «Ver / Editar» de una reserva modificada muestra «Ver datos originales» y «Restaurar datos originales»; "
+                 "restaurar pide confirmar con «¿Restaurar los datos originales de esta reserva?» antes de enviar el cambio (confirm en panel.js).")
+        self.nota("La tabla de comparación y la ventana de confirmación se deben revisar también en el navegador.")
+
+    def test_P109_ayuda_explica_la_accion(self):
+        html = self.adm.get(reverse("panel:ayuda")).content.decode()
+        for texto in ("12. Ver quién cambió una reserva y volver a sus datos originales", "Ver datos originales",
+                      "Restaurar datos originales", "confirmes"):
+            self.assertIn(texto, html)
+        self.obt("La página de Ayuda tiene la sección «12. Ver quién cambió una reserva y volver a sus datos originales» con los pasos "
+                 "para ver la columna «Último cambio», ver los datos originales y restaurarlos confirmando la acción.")
+
+
+# =====================================================================  Riesgos (matriz de riesgos)
+class Riesgos(Base):
+    """Funciones agregadas para mitigar los riesgos R02 (Ley 21.719), R03 (respaldos), R07 (monitoreo) y R08 (solicitudes falsas)."""
+
+    def test_P110_politica_de_privacidad(self):
+        titulos = {"es": "Política de privacidad", "en": "Privacy Policy", "pt": "Política de Privacidade"}
+        for codigo, titulo in titulos.items():
+            self.idioma(self.client, codigo)
+            r = self.client.get(reverse("privacidad"))
+            self.assertContains(r, titulo)
+        self.idioma(self.client, "es")
+        self.assertContains(self.client.get(reverse("inicio")), reverse("privacidad"))
+        self.obt(f"La página {reverse('privacidad')} se muestra en español, inglés y portugués («" + "», «".join(titulos.values()) +
+                 "») y el pie de página de todo el sitio la enlaza.")
+
+    def test_P111_identificacion_exige_consentimiento(self):
+        r = self.ingresar(acepto_privacidad="")
+        self.assertEqual(r.status_code, 200)
+        error = r.context["form"].errors["acepto_privacidad"][0]
+        self.assertNotIn("huesped", self.client.session)
+        self.ingresar()
+        self.solicitar(d(6), d(8))
+        fecha = Cliente.objects.get(id=RUT).fecha_consentimiento
+        self.assertIsNotNone(fecha)
+        self.obt(f"Sin marcar la casilla el formulario mostró «{error}» y no continuó; al aceptarla, el cliente {RUT} quedó con la fecha "
+                 f"de consentimiento {timezone.localtime(fecha):%d/%m/%Y %H:%M}.")
+
+    def test_P112_contacto_exige_consentimiento(self):
+        r = self.client.post(reverse("contacto"), {"nombre": "Ana", "correo": "ana@c.cl", "mensaje": "Hola"})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("acepto_privacidad", r.context["form"].errors)
+        self.assertFalse(Mensaje.objects.exists())
+        self.obt(f"Sin aceptar la Política de privacidad el formulario de contacto mostró «{r.context['form'].errors['acepto_privacidad'][0]}» "
+                 "y no se guardó el mensaje.")
+
+    def test_P113_limite_de_solicitudes_pendientes(self):
+        for i in range(settings.MAX_SOLICITUDES_PENDIENTES):
+            self.reserva(d(10 + 3 * i), d(11 + 3 * i))
+        self.ingresar()
+        r = self.solicitar(d(40), d(42))
+        self.assertEqual(r.status_code, 200)
+        err = self.errores(r)
+        self.assertIn("solicitudes pendientes", err)
+        self.assertEqual(Reserva.objects.count(), settings.MAX_SOLICITUDES_PENDIENTES)
+        self.obt(f"Con {settings.MAX_SOLICITUDES_PENDIENTES} solicitudes pendientes, una nueva fue rechazada: «{err}». No se creó la reserva.")
+
+    def test_P114_expirar_solicitudes_vencidas(self):
+        vencida = self.reserva(d(-2), d(1))
+        futura = self.reserva(d(6), d(8), doc="111111111")
+        aceptada = self.reserva(d(-5), d(-3), estado="aceptada", doc="222222222")
+        salida = StringIO()
+        call_command("expirar_solicitudes", stdout=salida)
+        for x in (vencida, futura, aceptada):
+            x.refresh_from_db()
+        self.assertEqual((vencida.estado_reserva, vencida.estado_pago), ("cancelada", "cancelado"))
+        self.assertIn("Cancelada automáticamente", vencida.notas)
+        self.assertEqual((futura.estado_reserva, aceptada.estado_reserva), ("pendiente", "aceptada"))
+        self.obt(f"El comando respondió «{salida.getvalue().strip()}»: la solicitud #{vencida.id} (llegada ya pasada) quedó cancelada con una "
+                 f"nota; la pendiente futura #{futura.id} y la aceptada #{aceptada.id} no cambiaron.")
+
+    def test_P115_respaldo_de_la_base_de_datos(self):
+        import tempfile
+        from pathlib import Path
+        from panel.management.commands import respaldar_bd
+
+        llamadas = []
+
+        def falso_pg_dump(comando, env, **kw):
+            llamadas.append((comando, env))
+            destino = next(a.split("=", 1)[1] for a in comando if a.startswith("--file="))
+            Path(destino).write_bytes(b"PGDMP respaldo de prueba")
+            return mock.Mock(returncode=0, stderr="")
+
+        with tempfile.TemporaryDirectory() as carpeta:
+            for viejo in ("20200101_000000", "20200102_000000", "20200103_000000"):
+                (Path(carpeta) / f"hospedaje_pirque_{viejo}.dump").write_bytes(b"x")
+            with mock.patch.object(respaldar_bd.shutil, "which", return_value="pg_dump"), \
+                 mock.patch.object(respaldar_bd.subprocess, "run", side_effect=falso_pg_dump):
+                call_command("respaldar_bd", carpeta=carpeta, conservar=2, stdout=StringIO())
+            quedan = sorted(p.name for p in Path(carpeta).glob("*.dump"))
+        comando, entorno = llamadas[0]
+        self.assertIn("--format=custom", comando)
+        self.assertEqual(len(quedan), 2)
+        self.assertNotIn("hospedaje_pirque_20200101_000000.dump", quedan)
+        self.assertEqual(entorno["PGPASSWORD"], settings.DATABASES["default"]["PASSWORD"] or "")
+        self.assertFalse(any(a.startswith(("--password", "-W")) for a in comando))
+        self.obt(f"respaldar_bd ejecutó pg_dump en formato custom (la clave va en PGPASSWORD, no en el comando), guardó el respaldo y, con "
+                 f"--conservar 2, dejó solo los 2 más recientes: {', '.join(quedan)}.")
+        self.nota("Restaurar un respaldo real (pg_restore) se debe probar en el equipo con PostgreSQL.")
+
+    def test_P116_estado_del_sitio_para_monitoreo(self):
+        r = self.client.get(reverse("salud"))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), {"estado": "ok"})
+        self.obt(f"{reverse('salud')} respondió {r.status_code} {r.json()} (la base de datos está disponible): un servicio de monitoreo "
+                 "puede revisarlo cada pocos minutos y avisar si el sitio se cae.")

@@ -1,0 +1,25 @@
+{% load idioma_tags %}<div class="a11y-contenedor"><button type="button" id="a11yBoton" class="a11y-boton" aria-expanded="false" aria-controls="a11yMenu"><i class="bi bi-universal-access-circle" aria-hidden="true"></i><span>{% t "Accesibilidad" "Accessibility" "Acessibilidade" %}</span></button>
+<div id="a11yMenu" class="a11y-menu" role="dialog" aria-modal="false" aria-labelledby="a11yTitulo" data-guardado="{% t 'Preferencia guardada' 'Preference saved' 'Preferência salva' %}" hidden>
+  <button type="button" class="cerrar" aria-label="{% t 'Cerrar el menú de accesibilidad' 'Close the accessibility menu' 'Fechar o menu de acessibilidade' %}">×</button>
+  <h2 id="a11yTitulo">{% t "Opciones de accesibilidad" "Accessibility options" "Opções de acessibilidade" %}</h2>
+  <p>{% t "Se guardan en este navegador. Puedes cerrar este menú con la tecla Esc." "They are saved in this browser. Press Esc to close this menu." "Ficam salvas neste navegador. Feche este menu com a tecla Esc." %}</p>
+  <div class="grupo" role="group" aria-labelledby="a11yTextoTitulo">
+    <span class="grupo-titulo" id="a11yTextoTitulo">{% t "Tamaño del texto" "Text size" "Tamanho do texto" %}</span>
+    <div class="fila-botones">
+      <button type="button" data-a11y-texto="0" aria-pressed="true">{% t "Normal" "Normal" "Normal" %}</button>
+      <button type="button" data-a11y-texto="1" aria-pressed="false">{% t "Grande" "Large" "Grande" %}</button>
+      <button type="button" data-a11y-texto="2" aria-pressed="false">{% t "Muy grande" "Larger" "Muito grande" %}</button>
+      <button type="button" data-a11y-texto="3" aria-pressed="false">{% t "Máximo" "Largest" "Máximo" %}</button>
+    </div>
+  </div>
+  <div class="grupo">
+    <button type="button" class="opcion" data-a11y-opcion="contraste" aria-pressed="false"><span>{% t "Alto contraste" "High contrast" "Alto contraste" %}</span><span class="estado" aria-hidden="true" data-on="{% t 'Activado' 'On' 'Ativado' %}" data-off="{% t 'Desactivado' 'Off' 'Desativado' %}"></span></button>
+    <button type="button" class="opcion" data-a11y-opcion="subrayar" aria-pressed="false"><span>{% t "Subrayar los enlaces" "Underline links" "Sublinhar os links" %}</span><span class="estado" aria-hidden="true" data-on="{% t 'Activado' 'On' 'Ativado' %}" data-off="{% t 'Desactivado' 'Off' 'Desativado' %}"></span></button>
+    <button type="button" class="opcion" data-a11y-opcion="espaciado" aria-pressed="false"><span>{% t "Más espacio entre líneas y letras" "More space between lines and letters" "Mais espaço entre linhas e letras" %}</span><span class="estado" aria-hidden="true" data-on="{% t 'Activado' 'On' 'Ativado' %}" data-off="{% t 'Desactivado' 'Off' 'Desativado' %}"></span></button>
+    <button type="button" class="opcion" data-a11y-opcion="legible" aria-pressed="false"><span>{% t "Letra más fácil de leer" "Easier-to-read font" "Letra mais fácil de ler" %}</span><span class="estado" aria-hidden="true" data-on="{% t 'Activado' 'On' 'Ativado' %}" data-off="{% t 'Desactivado' 'Off' 'Desativado' %}"></span></button>
+    <button type="button" class="opcion" data-a11y-opcion="sin-animaciones" aria-pressed="false"><span>{% t "Detener animaciones y movimiento" "Stop animations and motion" "Parar animações e movimento" %}</span><span class="estado" aria-hidden="true" data-on="{% t 'Activado' 'On' 'Ativado' %}" data-off="{% t 'Desactivado' 'Off' 'Desativado' %}"></span></button>
+  </div>
+  <button type="button" class="restablecer">{% t "Restablecer todo" "Reset all" "Restaurar tudo" %}</button>
+  <div id="a11yEstado" class="visually-hidden" role="status" aria-live="polite"></div>
+</div>
+</div>

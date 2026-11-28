@@ -4,10 +4,10 @@ Uso:  python manage.py test panel --testrunner=panel.test_runner.PlanRunner
       (solo un tipo:  python manage.py test panel.tests.test_seguridad --testrunner=panel.test_runner.PlanRunner)
 
 Archivos de pruebas (carpeta panel/tests/):
-  test_funciones.py       → hoja «Pruebas»         (P1 a P97)
-  test_seguridad.py       → hoja «Seguridad»       (S1 a S23)
-  test_rendimiento.py     → hoja «Rendimiento»     (R1 a R11)
-  test_compatibilidad.py  → hoja «Compatibilidad»  (C1 a C6; C7 en adelante son manuales)
+  test_funciones.py       → hoja «Funcionalidades» (P1 a P116)
+  test_seguridad.py       → hoja «Seguridad»       (S1 a S30)
+  test_rendimiento.py     → hoja «Rendimiento»     (R1 a R12)
+  test_compatibilidad.py  → hoja «Compatibilidad»  (C1 a C6 y C17 a C27; C7 a C16 y C28 a C31 son manuales)
 
 - Las tablas del proyecto son `managed=False`; aquí se marcan como administradas SOLO durante las pruebas para que
   Django las cree en la base de datos temporal de pruebas. Tu base real no se toca.
@@ -15,6 +15,7 @@ Archivos de pruebas (carpeta panel/tests/):
   Si ya existía, conserva los resultados de las pruebas que no se ejecutaron esta vez.
 """
 import json
+import logging
 import re
 import unittest
 from pathlib import Path
@@ -66,6 +67,11 @@ class PlanResult(unittest.TextTestResult):
 class PlanRunner(DiscoverRunner):
     def get_resultclass(self):
         return PlanResult
+
+    def setup_test_environment(self, **kwargs):
+        super().setup_test_environment(**kwargs)
+        # El registro «seguridad» anota cada ingreso y cambio: durante las pruebas se silencia para no llenar la consola.
+        logging.getLogger("seguridad").setLevel(logging.CRITICAL)
 
     def setup_databases(self, **kwargs):
         for m in apps.get_app_config("panel").get_models():

@@ -5,13 +5,35 @@ from panel.models import Cliente, Reserva
 from .idioma import L, L_lazy
 
 
-class MensajeForm(forms.Form):
-    nombre = forms.CharField(max_length=100, widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre y apellido"}))
-    correo = forms.EmailField(max_length=100, widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Correo"}))
+class Accesible:
+    """Campos con error accesibles (WCAG 3.3.1 y 4.1.2): marca aria-invalid y enlaza el campo con su mensaje de error
+    (id «<id del campo>_error»), para que el lector de pantalla lea el error al llegar al campo."""
+    def full_clean(self):
+        super().full_clean()
+        for nombre in self.errors:
+            if nombre in self.fields:
+                attrs = self.fields[nombre].widget.attrs
+                attrs["aria-invalid"] = "true"
+                attrs["aria-describedby"] = " ".join(filter(None, [attrs.get("aria-describedby", ""), f"id_{nombre}_error"]))
+
+
+def _consentimiento():
+    """Casilla obligatoria «Acepto la Política de privacidad» (Ley 21.719: consentimiento libre, informado y explícito)."""
+    return forms.BooleanField(required=True, error_messages={"required": L_lazy(
+        "Para continuar debes aceptar la Política de privacidad.",
+        "To continue you must accept the Privacy Policy.",
+        "Para continuar você deve aceitar a Política de Privacidade.")},
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}))
+
+
+class MensajeForm(Accesible, forms.Form):
+    nombre = forms.CharField(max_length=100, widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre y apellido", "autocomplete": "name"}))
+    correo = forms.EmailField(max_length=100, widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Correo", "autocomplete": "email"}))
     mensaje = forms.CharField(max_length=1000, widget=forms.Textarea(attrs={"class": "form-control", "rows": 5, "placeholder": "Mensaje"}))
+    acepto_privacidad = _consentimiento()
 
 
-class ReservaForm(forms.Form):
+class ReservaForm(Accesible, forms.Form):
     """Solicitud de estadía: fechas y cantidad de personas (servicio exclusivo: sin habitaciones ni precios)."""
     llegada = forms.DateField(widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}))
     salida = forms.DateField(widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}))
@@ -46,14 +68,14 @@ def _obligatorio():
 
 
 # Formulario de Identificación con validación real de RUT y Teléfono
-class ClienteLoginForm(forms.Form):
+class ClienteLoginForm(Accesible, forms.Form):
     nombre = forms.CharField(max_length=100, label=L_lazy("Nombre", "First name", "Nome"), error_messages=_obligatorio(),
-        widget=forms.TextInput(attrs={**_clase(), "placeholder": "Ej: Juan"}))
+        widget=forms.TextInput(attrs={**_clase(), "placeholder": "Ej: Juan", "autocomplete": "given-name"}))
     apellido = forms.CharField(max_length=100, label=L_lazy("Apellido", "Last name", "Sobrenome"), error_messages=_obligatorio(),
-        widget=forms.TextInput(attrs={**_clase(), "placeholder": "Ej: Pérez"}))
+        widget=forms.TextInput(attrs={**_clase(), "placeholder": "Ej: Pérez", "autocomplete": "family-name"}))
     correo = forms.EmailField(max_length=100, label=L_lazy("Correo", "Email", "E-mail"),
         error_messages={**_obligatorio(), "invalid": L_lazy("Correo electrónico inválido", "Invalid email", "E-mail inválido")},
-        widget=forms.EmailInput(attrs={**_clase(), "placeholder": "ejemplo@correo.com"}))
+        widget=forms.EmailInput(attrs={**_clase(), "placeholder": "ejemplo@correo.com", "autocomplete": "email"}))
     extranjero = forms.BooleanField(required=False,
         label=L_lazy("Soy extranjero (uso pasaporte/DNI)", "I'm a foreigner (I use a passport/ID)", "Sou estrangeiro (uso passaporte/documento)"),
         widget=forms.CheckboxInput(attrs={"class": "form-check-input ms-1"}))
@@ -62,6 +84,7 @@ class ClienteLoginForm(forms.Form):
         widget=forms.TextInput(attrs={**_clase(), "placeholder": "123456785", "autocomplete": "off", "maxlength": "9"}))
     telefono = forms.CharField(max_length=25, label=L_lazy("Teléfono", "Phone", "Telefone"), error_messages=_obligatorio(),
         widget=forms.TextInput(attrs={**_clase(), "placeholder": "56912345678", "inputmode": "numeric", "autocomplete": "tel", "maxlength": "15"}))
+    acepto_privacidad = _consentimiento()
 
     # RUT / DNI. Para chilenos se acepta CUALQUIER RUT de 8 o 9 caracteres (números y, solo al final, una K):
     # el dígito verificador (módulo 11) NO bloquea, porque hay RUT reales o de prueba que no lo cumplen.

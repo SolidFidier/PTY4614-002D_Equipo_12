@@ -1,11 +1,12 @@
-"""Pruebas de seguridad básica (S1 a S23) de la hoja «Seguridad» del Plan de pruebas."""
+"""Pruebas de seguridad básica (S1 a S32) de la hoja «Seguridad» del Plan de pruebas."""
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.cache import cache
 from django.core.management import call_command
-from django.test import Client
+from django.test import Client, override_settings
 from django.urls import reverse
 from io import StringIO
 
@@ -261,3 +262,113 @@ class Seguridad(Base):
         self.assertContains(r, "El enlace ya no sirve")
         self.obt("Con PASSWORD_RESET_TIMEOUT = 3600, el enlace abierto 61 minutos después mostró «El enlace ya no sirve» y no permitió "
                  "cambiar la contraseña.")
+
+    # ---------- Riesgo R01: acceso no autorizado ----------
+    def test_S24_bloqueo_por_intentos_fallidos(self):
+        c = Client()
+        for _ in range(5):
+            c.post(reverse("panel:login"), {"usuario": "admin", "password": "clave-equivocada"})
+        r = c.post(reverse("panel:login"), {"usuario": "admin", "password": CLAVE})
+        self.assertEqual(r.status_code, 429)
+        self.assertContains(r, "bloqueado", status_code=429)
+        self.assertNotIn("_auth_user_id", c.session)
+        cache.clear()                                  # pasaron los 15 minutos
+        r = c.post(reverse("panel:login"), {"usuario": "admin", "password": CLAVE})
+        self.assertRedirects(r, reverse("panel:inicio"), fetch_redirect_response=False)
+        self.obt("Después de 5 contraseñas incorrectas, incluso la contraseña correcta fue rechazada con 429 y el aviso «el ingreso quedó "
+                 "bloqueado por 15 minutos»; pasado el bloqueo se pudo entrar normalmente.")
+
+    def test_S25_campo_trampa_en_contacto(self):
+        r = self.client.post(reverse("contacto"), {"nombre": "Bot", "correo": "bot@spam.com", "mensaje": "Compra ya", "acepto_privacidad": "on",
+                                                   "sitio_web": "http://spam.example"}, follow=True)
+        self.assertContains(r, "Mensaje enviado")
+        self.assertFalse(Mensaje.objects.exists())
+        self.assertFalse(mail.outbox)
+        self.obt("Un envío automático que llenó el campo oculto «sitio_web» recibió la misma respuesta «Mensaje enviado», pero no se guardó "
+                 "el mensaje ni se avisó a los administradores.")
+
+    def test_S26_campo_trampa_en_reserva(self):
+        self.ingresar()
+        r = self.client.post(reverse("reservar"), {"llegada": d(6).isoformat(), "salida": d(8).isoformat(), "adultos": 2, "ninos": 0,
+                                                   "sitio_web": "http://spam.example"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r["Location"], reverse("inicio"))
+        self.assertFalse(Reserva.objects.exists())
+        self.obt(f"Una solicitud de reserva con el campo oculto «sitio_web» lleno se descartó: redirigió a {r['Location']} y no se creó ninguna reserva.")
+
+    # ---------- H16: trazabilidad ----------
+    def test_S27_trazabilidad_sin_sesion_o_metodo_incorrecto(self):
+        res = self.reserva(d(6), d(8))
+        self.editar(res, monto=90000)
+        anonimo = Client()
+        r1 = anonimo.get(reverse("panel:reserva_originales", args=[res.id]))
+        r2 = anonimo.post(reverse("panel:reserva_restaurar", args=[res.id]))
+        for r in (r1, r2):
+            self.assertEqual(r.status_code, 302)
+            self.assertIn(reverse("panel:login"), r["Location"])
+        self.assertEqual(self.adm.get(reverse("panel:reserva_restaurar", args=[res.id])).status_code, 405)
+        self.assertEqual(self.adm.post(reverse("panel:reserva_originales", args=[res.id])).status_code, 405)
+        res.refresh_from_db()
+        self.assertEqual(res.monto, 90000)
+        self.obt("Sin sesión, ver los datos originales y restaurarlos redirigieron al inicio de sesión sin cambiar nada; con sesión, "
+                 "restaurar por GET y ver originales por POST respondieron 405 (método no permitido).")
+
+    def test_S28_restaurar_exige_token_csrf(self):
+        res = self.reserva(d(6), d(8))
+        self.editar(res, monto=90000)
+        c = Client(enforce_csrf_checks=True)
+        c.force_login(self.admin)
+        r = c.post(reverse("panel:reserva_restaurar", args=[res.id]))
+        self.assertEqual(r.status_code, 403)
+        res.refresh_from_db()
+        self.assertEqual(res.monto, 90000)
+        self.obt(f"Restaurar la reserva #{res.id} sin token CSRF (con sesión iniciada) respondió 403 y la reserva no cambió (valor ${res.monto:,}).".replace(",", "."))
+
+    def test_S29_nombre_del_admin_y_originales_escapados(self):
+        self.admin.first_name = SCRIPT
+        self.admin.save()
+        res = self.reserva(d(6), d(8), notas=SCRIPT)
+        self.editar(res, monto=90000)
+        html = self.adm.get(reverse("panel:reservas")).content.decode()
+        self.assertNotIn(SCRIPT, html)
+        self.assertIn("&lt;script&gt;", html)
+        js = (Path(settings.BASE_DIR) / "panel" / "static" / "panel" / "js" / "panel.js").read_text(encoding="utf-8")
+        funcion = js[js.index("function tablaOriginales"):js.index("\n}\n", js.index("function tablaOriginales"))]
+        self.assertNotIn("innerHTML", funcion)
+        self.assertIn("textContent", funcion)
+        self.obt("Un nombre de administrador y una nota con «<script>» se mostraron escapados en la lista de reservas; la tabla de datos "
+                 "originales se arma con textContent (nunca innerHTML), por lo que ningún dato puede ejecutar código.")
+
+    # ---------- Riesgos R01 y R06: configuración y reglas en la base de datos ----------
+    def test_S30_exclusividad_garantizada_por_la_base_de_datos(self):
+        carpeta = settings.BD_DIR
+        for archivo in ("hospedaje_pirque_bd.sql", "cambios_bd.sql"):
+            sql = (carpeta / archivo).read_text(encoding="utf-8")
+            self.assertIn("excl_reservas_aceptadas_sin_cruce", sql, archivo)
+            self.assertIn("EXCLUDE USING gist (daterange(fecha_entrada, fecha_salida) WITH &&)", sql, archivo)
+        vistas = (Path(settings.BASE_DIR) / "panel" / "views.py").read_text(encoding="utf-8")
+        self.assertGreaterEqual(vistas.count("except IntegrityError"), 4)
+        self.obt("Los dos scripts de base de datos crean la restricción excl_reservas_aceptadas_sin_cruce (no permite dos reservas ACEPTADAS "
+                 "con fechas cruzadas, aunque se acepten al mismo tiempo) y el panel convierte ese rechazo en un aviso claro.")
+        self.nota("La restricción se comprobó en PostgreSQL 16: al aceptar una reserva que se cruza, la base responde «conflicting key value "
+                  "violates exclusion constraint».")
+
+    def test_S31_avisos_de_configuracion_para_produccion(self):
+        from panel.checks import seguridad_produccion
+        with override_settings(DEBUG=False, SECRET_KEY="cambia-esta-clave-en-produccion", HTTPS=False, ALLOWED_HOSTS=["*"]):
+            mal = sorted(a.id for a in seguridad_produccion(None))
+        with override_settings(DEBUG=False, SECRET_KEY="x" * 50, HTTPS=True, ALLOWED_HOSTS=["hospedajepirque.cl"]):
+            bien = seguridad_produccion(None)
+        self.assertEqual(mal, ["pirque.W001", "pirque.W002", "pirque.W003"])
+        self.assertEqual(bien, [])
+        self.obt(f"Con DEBUG desactivado, la clave de ejemplo, sin https y ALLOWED_HOSTS=* el sistema mostró los avisos {', '.join(mal)}; "
+                 "con una clave propia, DJANGO_HTTPS=1 y el dominio definido no mostró ninguno.")
+
+    def test_S32_cabeceras_de_seguridad(self):
+        r = self.client.get(reverse("inicio"))
+        self.assertEqual(r["X-Frame-Options"], "DENY")
+        self.assertEqual(r["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(r["Referrer-Policy"], "same-origin")
+        self.assertTrue(settings.CSRF_COOKIE_HTTPONLY)
+        self.obt("Las páginas envían X-Frame-Options: DENY (no se pueden incrustar en otro sitio), X-Content-Type-Options: nosniff y "
+                 "Referrer-Policy: same-origin; la cookie CSRF es HttpOnly.")

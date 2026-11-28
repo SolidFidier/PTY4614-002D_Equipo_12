@@ -11,6 +11,7 @@ sitio lo lleva a WhatsApp con un mensaje prearmado; la administradora confirma, 
    (`base_de_datos/cambios_bd.sql`: conserva clientes, reservas y mensajes; elimina habitaciones, pagos y precios). Es repetible.
 4. `python manage.py migrate` · `python manage.py createsuperuser` · `python manage.py runserver`
 5. (Opcional) `python manage.py cargar_datos_prueba` → clientes, reservas, mensajes y reseñas de ejemplo.
+6. Para publicar, respaldar y mantener el sistema: **`MANTENIMIENTO.md`**.
 
 Sitio: http://127.0.0.1:8000/ · Panel: /panel/login/ (correo o usuario) · Django Admin: /admin/
 
@@ -71,6 +72,32 @@ Avisos a administradores: el correo del hospedaje (Configuraciones avanzadas) o,
 - Calendario de reserva (sitio y panel): se oculta el campo de texto que flatpickr dejaba visible sobre el calendario; en celular el calendario ocupa el
   ancho de la tarjeta y los círculos rojos de las fechas ocupadas ya no se tocan (`static/css/style.css`)
 - Pruebas: nuevas P94 a P97 y S19 a S23 (recuperación de contraseña)
+- Trazabilidad de reservas (H16): la tabla `reservas` guarda quién hizo el último cambio (`FK_admin`), cuándo (`fecha_modificacion`)
+  y una copia de los datos antes del primer cambio (`datos_originales`). La lista de Reservas muestra la columna «Último cambio»
+  y la ventana «Ver / Editar» tiene los botones «Ver datos originales» y «Restaurar datos originales» (pide confirmar).
+  Nueva sección 12 en Ayuda. Ejecutar `python manage.py preparar_bd`
+- Riesgos de la matriz (ver `MANTENIMIENTO.md`):
+  - R01: bloqueo de 15 minutos tras 5 contraseñas incorrectas, registro de seguridad (`LOGGING`), avisos `pirque.W001`–`W003`
+    si falta configurar la clave secreta, https o ALLOWED_HOSTS, `DJANGO_HTTPS=1` para obligar https y cabeceras de seguridad
+  - R02 (Ley 21.719): página «Política de privacidad» (es/en/pt, enlazada en el pie), casilla obligatoria de consentimiento en la
+    identificación y en contacto, y fecha del consentimiento en `clientes.fecha_consentimiento`
+  - R03: comando `python manage.py respaldar_bd` (pg_dump diario, conserva los últimos 14) y guía para restaurar
+  - R06: la base de datos impide dos reservas ACEPTADAS con fechas cruzadas (restricción `excl_reservas_aceptadas_sin_cruce`)
+  - R07: dirección `/salud/` para un servicio de monitoreo
+  - R08: campo trampa contra envíos automáticos, máximo 3 solicitudes pendientes por cliente y comando `expirar_solicitudes`
+  - R09: `MANTENIMIENTO.md` (manual técnico) · R10: versiones fijadas en `requirements.txt`, `requirements-dev.txt` y Dependabot.
+    `django_extensions` pasa a ser opcional (solo desarrollo)
+- Pruebas: nuevas P98 a P116, S24 a S32 y R12
+- Accesibilidad (WCAG 2.2, nivel AA): botón «Accesibilidad» en el sitio y el panel (tamaño de texto en 4 niveles, alto contraste,
+  subrayar enlaces, más espaciado, letra legible y detener animaciones; se guarda en el navegador). Archivos `static/css/accesibilidad.css`,
+  `static/js/accesibilidad.js` y `sitio/templates/accesibilidad/_menu.html`. Además: enlace «Saltar al contenido», etiquetas en todos los
+  campos (también en el inicio de sesión y las ventanas del panel), errores enlazados al campo (aria-invalid / aria-describedby),
+  colores con contraste AA, foco siempre visible, carrusel con botón «Pausar», casilla para pausar la actualización automática de
+  Reservas, avisos que no desaparecen solos, fechas de reserva que se pueden escribir sin el calendario, texto del gráfico para
+  lectores de pantalla y sección 13 en Ayuda
+- Pruebas: nuevas C17 a C27 (automáticas) y C28 a C31 (manuales: teclado, lector de pantalla, zoom y Lighthouse)
+- `actualizar_plan.py` ahora también actualiza la hoja «Resumen» (correctas, manuales, fallaron, corregidas, total y listas) y el
+  «Registro de fallos» (agrega los fallos nuevos y marca en «Estado actual» si cada prueba ya fue corregida o sigue fallando)
 
 Se realizaron pruebas automatizadas de funciones, seguridad, compatibilidad y rendimiento.
 
@@ -122,4 +149,4 @@ Para obtener el diagrama de clases se utilizo graphviz y se uso los siguientes c
 
 Y se agrego a INSTALLED_APPS en settings.py: `django_extensions`
 
-Una vez obtenido el diagrama se le cambio el nombre a Vista logica - Diagrama de clases
+Una vez obtenido el diagrama se le cambio el nombre a Vista logica - Diagrama de clases

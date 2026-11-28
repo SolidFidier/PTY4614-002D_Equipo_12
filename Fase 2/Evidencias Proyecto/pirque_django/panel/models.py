@@ -25,6 +25,7 @@ class Cliente(models.Model):
     nacionalidad = models.CharField(max_length=50)
     telefono = models.CharField(max_length=100)
     correo = models.CharField(max_length=100)
+    fecha_consentimiento = FechaHoraUTC(null=True, blank=True)    # aceptó la Política de privacidad (Ley 21.719)
     class Meta: managed = False; db_table = "clientes"
     def __str__(self): return f"{self.nombre} {self.apellido} ({self.id})"
 
@@ -48,8 +49,15 @@ class Reserva(models.Model):
     vista = models.BooleanField(default=False)                   # False = solicitud nueva aún sin revisar (se destaca)
     idioma = models.CharField(max_length=2, default="es")
     fecha_reserva = FechaHoraUTC(default=timezone.now)
+    # Trazabilidad (H16): último administrador que aceptó, editó o restauró la reserva, cuándo lo hizo y copia de los datos
+    # que tenía la reserva ANTES del primer cambio (se guardan una sola vez y no se pisan: así siempre se pueden restaurar).
+    admin_id = models.IntegerField(db_column="FK_admin", null=True, blank=True)
+    fecha_modificacion = FechaHoraUTC(null=True, blank=True)
+    datos_originales = models.JSONField(null=True, blank=True)
     class Meta: managed = False; db_table = "reservas"
     def __str__(self): return f"#{self.id} {self.nombre} {self.apellido}"
+    @property
+    def modificada(self): return self.fecha_modificacion is not None
     @property
     def personas(self): return self.cant_adultos + (self.cant_ninos or 0)
     @property

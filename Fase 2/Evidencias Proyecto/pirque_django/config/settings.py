@@ -15,8 +15,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "sitio",
     "panel",
-    "django_extensions",
 ]
+# django-extensions es solo una ayuda de desarrollo (requirements-dev.txt): si no está instalada, el sitio funciona igual.
+try:
+    import django_extensions  # noqa: F401
+    INSTALLED_APPS.append("django_extensions")
+except ImportError:
+    pass
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -143,3 +148,49 @@ BD_DIR = BASE_DIR / "base_de_datos"
 SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000").rstrip("/")
 # El enlace de reseña enviado por correo vence a los X días de la solicitud (y sirve una sola vez).
 RESENA_DIAS_VALIDEZ = int(os.getenv("RESENA_DIAS_VALIDEZ", "60"))
+
+# ---------------- Solicitudes de reserva (riesgo R08: solicitudes falsas o abandonadas) ----------------
+# Máximo de solicitudes PENDIENTES (aún sin confirmar) que un mismo cliente puede tener a la vez.
+MAX_SOLICITUDES_PENDIENTES = int(os.getenv("MAX_SOLICITUDES_PENDIENTES", "3"))
+
+# ---------------- Respaldos de la base de datos (riesgo R03) ----------------
+# python manage.py respaldar_bd guarda un archivo .dump aquí y conserva los últimos RESPALDOS_CONSERVAR.
+# Por defecto la carpeta queda FUERA del proyecto (para que nunca se suba a GitHub con datos personales).
+# Lo ideal es que sea una carpeta sincronizada con la nube (Google Drive, OneDrive) o un disco externo.
+RESPALDOS_DIR = Path(os.getenv("RESPALDOS_DIR", str(Path.home() / "respaldos_hospedaje_pirque")))
+RESPALDOS_CONSERVAR = int(os.getenv("RESPALDOS_CONSERVAR", "14"))
+PG_DUMP = os.getenv("PG_DUMP", "pg_dump")   # en Windows, p. ej.: C:\Program Files\PostgreSQL\16\bin\pg_dump.exe
+
+# ---------------- Seguridad al publicar (riesgo R01) ----------------
+# Cuando el sitio ya tiene certificado (https://), define en el servidor DJANGO_HTTPS=1: redirige todo a https, las cookies
+# solo viajan cifradas y el navegador recuerda usar https (HSTS). Se deja opcional para no romper un servidor sin certificado.
+HTTPS = os.getenv("DJANGO_HTTPS", "0") == "1"
+if HTTPS:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")   # el hosting atiende el https y avisa con esta cabecera
+    SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_HSTS_SECONDS", str(60 * 60 * 24 * 30)))
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+CSRF_COOKIE_HTTPONLY = True          # el panel toma el token CSRF de la etiqueta <meta name="csrf">, no de la cookie
+SESSION_COOKIE_HTTPONLY = True
+
+# ---------------- Registro de seguridad (incidentes y cambios importantes) ----------------
+# El registro «seguridad» anota: ingresos al panel, intentos fallidos, bloqueos, reservas restauradas o eliminadas,
+# clientes eliminados y envíos sospechosos de formularios. Siempre se ve en la consola del servidor; si defines
+# DJANGO_LOG_SEGURIDAD=ruta/al/archivo.log también se guarda en ese archivo (rota a los 2 MB y conserva 5 copias).
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"simple": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"}},
+    "handlers": {"consola": {"class": "logging.StreamHandler", "formatter": "simple"}},
+    "loggers": {"seguridad": {"handlers": ["consola"], "level": "INFO", "propagate": False}},
+}
+LOG_SEGURIDAD = os.getenv("DJANGO_LOG_SEGURIDAD", "")
+if LOG_SEGURIDAD:
+    Path(LOG_SEGURIDAD).parent.mkdir(parents=True, exist_ok=True)
+    LOGGING["handlers"]["archivo"] = {"class": "logging.handlers.RotatingFileHandler", "filename": LOG_SEGURIDAD,
+                                      "maxBytes": 2_000_000, "backupCount": 5, "encoding": "utf-8", "formatter": "simple"}
+    LOGGING["loggers"]["seguridad"]["handlers"].append("archivo")

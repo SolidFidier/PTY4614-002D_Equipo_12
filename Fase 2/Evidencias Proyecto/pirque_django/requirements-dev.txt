@@ -1,0 +1,5 @@
+# Solo para desarrollo y pruebas (no se necesitan en el servidor)
+-r requirements.txt
+django-extensions>=3.2,<5
+openpyxl>=3.1,<4      # actualizar_plan.py (copia los resultados de las pruebas al Excel)
+pip-audit>=2.7        # revisa avisos de seguridad de las dependencias

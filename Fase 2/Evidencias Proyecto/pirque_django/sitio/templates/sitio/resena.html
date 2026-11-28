@@ -18,13 +18,17 @@
             <h2 class="h4 font-serif text-warning mb-3">{% t "Cuéntanos tu experiencia" "Tell us about your experience" "Conte-nos sobre sua experiência" %}</h2>
             <form method="post">
                 {% csrf_token %}
-                {% if error %}<div class="text-danger fw-bold small mb-2">⚠️ {% t "Elige una calificación de 1 a 5 estrellas." "Please choose a rating from 1 to 5 stars." "Escolha uma nota de 1 a 5 estrelas." %}</div>{% endif %}
-                <div class="estrellas-input mb-3" role="radiogroup">
-                    {% for n in "54321" %}<input type="radio" name="calificacion" id="e{{ n }}" value="{{ n }}"><label for="e{{ n }}" title="{{ n }}">★</label>{% endfor %}
+                {% if error %}<div class="text-danger fw-bold small mb-2" id="errorCalificacion" role="alert">⚠️ {% t "Elige una calificación de 1 a 5 estrellas." "Please choose a rating from 1 to 5 stars." "Escolha uma nota de 1 a 5 estrelas." %}</div>{% endif %}
+                <fieldset class="mb-3 border-0 p-0">
+                <legend class="form-label small mb-1">{% t "Calificación (obligatoria)" "Rating (required)" "Nota (obrigatória)" %}</legend>
+                <div class="estrellas-input" {% if error %}aria-describedby="errorCalificacion"{% endif %}>
+                    {% for n in "54321" %}<input type="radio" name="calificacion" id="e{{ n }}" value="{{ n }}" required><label for="e{{ n }}" title="{{ n }}"><span aria-hidden="true">★</span><span class="visually-hidden">{{ n }} {% if n == "1" %}{% t "estrella" "star" "estrela" %}{% else %}{% t "estrellas" "stars" "estrelas" %}{% endif %}</span></label>{% endfor %}
                 </div>
-                <textarea name="comentario" rows="5" maxlength="1000" class="form-control bg-dark text-light border-secondary mb-3" placeholder="{% t 'Tu comentario (opcional)' 'Your comment (optional)' 'Seu comentário (opcional)' %}">{{ comentario }}</textarea>
-                <label class="form-label small opacity-75">{% t "Nombre con el que aparecerá tu reseña" "Name shown with your review" "Nome que aparecerá com sua avaliação" %}</label>
-                <input type="text" name="nombre_publico" maxlength="100" value="{{ publico }}" class="form-control bg-dark text-light border-secondary mb-4">
+                </fieldset>
+                <label class="form-label small opacity-75" for="comentario">{% t "Tu comentario (opcional)" "Your comment (optional)" "Seu comentário (opcional)" %}</label>
+                <textarea name="comentario" id="comentario" rows="5" maxlength="1000" class="form-control bg-dark text-light border-secondary mb-3" placeholder="{% t 'Tu comentario (opcional)' 'Your comment (optional)' 'Seu comentário (opcional)' %}">{{ comentario }}</textarea>
+                <label class="form-label small opacity-75" for="nombre_publico">{% t "Nombre con el que aparecerá tu reseña" "Name shown with your review" "Nome que aparecerá com sua avaliação" %}</label>
+                <input type="text" name="nombre_publico" id="nombre_publico" maxlength="100" autocomplete="name" value="{{ publico }}" class="form-control bg-dark text-light border-secondary mb-4">
                 <button class="btn btn-warning rounded-pill px-5 fw-bold">{% t "Enviar reseña" "Submit review" "Enviar avaliação" %}</button>
                 <p class="small opacity-75 mt-3 mb-0">{% t "Este enlace es personal y solo se puede usar una vez." "This link is personal and can only be used once." "Este link é pessoal e só pode ser usado uma vez." %}</p>
             </form>

@@ -1,16 +1,18 @@
+import logging
 import re
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import F, Max, Min, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from sitio import correos
 from sitio.datos import CLAVES, NORMALIZADORES, datos_sitio, valores_guardados, valores_originales
@@ -22,6 +24,8 @@ ESTADOS_P = [e for e, _ in ESTADOS_PAGO]
 MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 panel = login_required(login_url="panel:login")
+seguridad = logging.getLogger("seguridad")   # registro de eventos de seguridad y de cambios importantes (ver LOGGING en settings.py)
+EXCLUSIVO = "Ya hay otra reserva ACEPTADA en esas fechas (el servicio es exclusivo para un grupo a la vez)."
 
 
 def limpiar(v): return re.sub(r"[.\-\s]", "", v or "").upper()
@@ -49,13 +53,49 @@ def ocupacion_anios():
 
 
 # ---------- Sesión ----------
+# Protección contra adivinar contraseñas: tras INTENTOS_MAX intentos fallidos seguidos (mismo usuario y misma conexión)
+# se bloquea el ingreso por BLOQUEO_MIN minutos. También se limita el total de intentos fallidos desde una misma conexión.
+INTENTOS_MAX, INTENTOS_MAX_IP, BLOQUEO_MIN = 5, 20, 15
+BLOQUEADO = (f"Por seguridad, el ingreso quedó bloqueado por {BLOQUEO_MIN} minutos después de varios intentos fallidos. "
+             "Espera un momento o usa «¿Olvidaste tu contraseña?».")
+
+
+def _ip(request):
+    return request.META.get("REMOTE_ADDR", "") or "sin-ip"
+
+
+def _claves_intentos(request, usuario):
+    ip = _ip(request)
+    return f"panel-login:{usuario.lower()}:{ip}", f"panel-login-ip:{ip}"
+
+
+def _bloqueado(request, usuario):
+    k_usuario, k_ip = _claves_intentos(request, usuario)
+    return cache.get(k_usuario, 0) >= INTENTOS_MAX or cache.get(k_ip, 0) >= INTENTOS_MAX_IP
+
+
+def _sumar_fallo(request, usuario):
+    for k in _claves_intentos(request, usuario):
+        cache.set(k, cache.get(k, 0) + 1, BLOQUEO_MIN * 60)
+
+
 def login_view(request):
     if request.user.is_authenticated: return redirect("panel:inicio")
     error = ""
     if request.method == "POST":
-        u = authenticate(request, username=request.POST.get("usuario", "").strip(), password=request.POST.get("password", ""))
-        if u: login(request, u); return redirect("panel:inicio")
-        error = "Usuario o contraseña incorrectos."
+        usuario = request.POST.get("usuario", "").strip()
+        if _bloqueado(request, usuario):
+            seguridad.warning("Ingreso al panel bloqueado: usuario=%r ip=%s", usuario, _ip(request))
+            return render(request, "panel/login.html", {"error": BLOQUEADO}, status=429)
+        u = authenticate(request, username=usuario, password=request.POST.get("password", ""))
+        if u:
+            cache.delete(_claves_intentos(request, usuario)[0])
+            login(request, u)
+            seguridad.info("Ingreso al panel: usuario=%s ip=%s", u.username, _ip(request))
+            return redirect("panel:inicio")
+        _sumar_fallo(request, usuario)
+        seguridad.warning("Intento fallido de ingreso al panel: usuario=%r ip=%s", usuario, _ip(request))
+        error = BLOQUEADO if _bloqueado(request, usuario) else "Usuario o contraseña incorrectos."
     return render(request, "panel/login.html", {"error": error})
 
 
@@ -123,6 +163,8 @@ def inicio(request):
     ev = []
     r = Reserva.objects.order_by("-fecha_reserva").first()
     if r: ev.append((r.fecha_reserva, "Reserva más reciente", f"#{r.id} · {r.nombre} {r.apellido} ({r.estado_reserva})", "bi-calendar-check"))
+    r = Reserva.objects.filter(fecha_modificacion__isnull=False).order_by("-fecha_modificacion").first()
+    if r: ev.append((r.fecha_modificacion, f"Reserva #{r.id} modificada", f"por {nombres_admin([r.admin_id]).get(r.admin_id, '—')}", "bi-pencil-square"))
     for m in Mensaje.objects.filter(fecha_gestion__isnull=False).order_by("-fecha_gestion")[:2]:
         ev.append((m.fecha_gestion, f"Mensaje {m.codigo} gestionado", f"por {m.admin_nombre}", "bi-envelope-check"))
     for x in Resena.objects.filter(fecha_resena__isnull=False).select_related("reserva").order_by("-fecha_resena")[:2]:
@@ -227,10 +269,12 @@ def reservas(request, seccion="todas"):
     page, qstr = pagina(request, todas)
     lista = list(page)
     res = {x.reserva_id: x for x in Resena.objects.filter(reserva__in=[r.id for r in lista])}
+    admins = nombres_admin(r.admin_id for r in lista)            # una sola consulta para toda la página
     alertas, notas = conflictos()
     for r in lista:
         r.res = res.get(r.id)
         r.choque = notas.get(r.id, "")
+        r.admin_nombre = admins.get(r.admin_id, "") if r.admin_id else ""
     return render(request, "panel/reservas.html", {
         "page": page, "lista": lista, "qs": qstr, "q": q, "pago": pago, "f": f, "seccion": seccion, "titulo": SECCIONES[seccion], "orden": orden,
         "ordenes": ORDENES, "alertas": alertas, "secciones": SECCIONES, "conteos": conteos, "estados_reserva": ESTADOS_RESERVA,
@@ -262,7 +306,7 @@ def _leer_reserva(d, excluir=None):
     if "@" not in correo: return None, "El correo no es válido."
     if d.get("estado_reserva") not in ESTADOS_R or d.get("estado_pago") not in ESTADOS_P: return None, "Estado inválido."
     if d["estado_reserva"] == "aceptada" and aceptadas().filter(fecha_entrada__lt=s, fecha_salida__gt=e).exclude(pk=excluir).exists():
-        return None, "Ya hay otra reserva ACEPTADA en esas fechas (el servicio es exclusivo para un grupo a la vez)."
+        return None, EXCLUSIVO
     return dict(doc=doc, nombre=nombre, apellido=apellido, correo=correo, tel=tel, entrada=e, salida=s, adultos=adultos, ninos=ninos, monto=monto,
                 estado_reserva=d["estado_reserva"], estado_pago=d["estado_pago"], notas=d.get("notas", "").strip()[:500],
                 nac="Extranjero" if d.get("nacionalidad") == "Extranjero" else "Chileno"), None
@@ -284,12 +328,15 @@ def _avisar_aceptacion(request, r):
 def reserva_crear(request):
     x, error = _leer_reserva(request.POST)
     if error: return err(error)
-    with transaction.atomic():
-        _guardar_cliente(x)
-        r = Reserva.objects.create(cliente_id=x["doc"], nombre=x["nombre"], apellido=x["apellido"], correo=x["correo"], telefono=x["tel"],
-                                   cant_adultos=x["adultos"], cant_ninos=x["ninos"], fecha_entrada=x["entrada"], fecha_salida=x["salida"],
-                                   monto=x["monto"], estado_reserva=x["estado_reserva"], estado_pago=x["estado_pago"], notas=x["notas"],
-                                   idioma="es", vista=True, fecha_reserva=timezone.now())
+    try:
+        with transaction.atomic():
+            _guardar_cliente(x)
+            r = Reserva.objects.create(cliente_id=x["doc"], nombre=x["nombre"], apellido=x["apellido"], correo=x["correo"], telefono=x["tel"],
+                                       cant_adultos=x["adultos"], cant_ninos=x["ninos"], fecha_entrada=x["entrada"], fecha_salida=x["salida"],
+                                       monto=x["monto"], estado_reserva=x["estado_reserva"], estado_pago=x["estado_pago"], notas=x["notas"],
+                                       idioma="es", vista=True, fecha_reserva=timezone.now())
+    except IntegrityError:          # otra persona aceptó una reserva en esas fechas al mismo tiempo (lo impide la base de datos)
+        return err(EXCLUSIVO)
     aviso = _avisar_aceptacion(request, r) if x["estado_reserva"] == "aceptada" and request.POST.get("enviar_correo") == "1" else ""
     return JsonResponse({"ok": True, "aviso": aviso})
 
@@ -301,11 +348,16 @@ def reserva_editar(request, pk):
     x, error = _leer_reserva(request.POST, excluir=r.pk)
     if error: return err(error)
     previo = r.estado_reserva
-    with transaction.atomic():
-        _guardar_cliente(x)
-        Reserva.objects.filter(pk=pk).update(cliente_id=x["doc"], nombre=x["nombre"], apellido=x["apellido"], correo=x["correo"], telefono=x["tel"],
-                                             cant_adultos=x["adultos"], cant_ninos=x["ninos"], fecha_entrada=x["entrada"], fecha_salida=x["salida"],
-                                             monto=x["monto"], estado_reserva=x["estado_reserva"], estado_pago=x["estado_pago"], notas=x["notas"], vista=True)
+    nuevos = dict(cliente_id=x["doc"], nombre=x["nombre"], apellido=x["apellido"], correo=x["correo"], telefono=x["tel"],
+                  cant_adultos=x["adultos"], cant_ninos=x["ninos"], fecha_entrada=x["entrada"], fecha_salida=x["salida"],
+                  monto=x["monto"], estado_reserva=x["estado_reserva"], estado_pago=x["estado_pago"], notas=x["notas"])
+    traza = _marcar_cambio(request, r) if _foto_de(nuevos) != _foto(r) else {}   # solo si de verdad cambió algo
+    try:
+        with transaction.atomic():
+            _guardar_cliente(x)
+            Reserva.objects.filter(pk=pk).update(**nuevos, vista=True, **traza)
+    except IntegrityError:
+        return err(EXCLUSIVO)
     aviso = ""
     if x["estado_reserva"] == "aceptada" and previo != "aceptada" and request.POST.get("enviar_correo") == "1":
         aviso = _avisar_aceptacion(request, Reserva.objects.get(pk=pk))
@@ -318,8 +370,13 @@ def reserva_aceptar(request, pk):
     """Acción rápida de la lista de pendientes: acepta la reserva y avisa por correo al cliente."""
     r = get_object_or_404(Reserva, pk=pk)
     if aceptadas().filter(fecha_entrada__lt=r.fecha_salida, fecha_salida__gt=r.fecha_entrada).exclude(pk=r.pk).exists():
-        return err("Ya hay otra reserva ACEPTADA en esas fechas (el servicio es exclusivo para un grupo a la vez).")
-    Reserva.objects.filter(pk=pk).update(estado_reserva="aceptada", vista=True)
+        return err(EXCLUSIVO)
+    traza = _marcar_cambio(request, r) if r.estado_reserva != "aceptada" else {}
+    try:
+        with transaction.atomic():
+            Reserva.objects.filter(pk=pk).update(estado_reserva="aceptada", vista=True, **traza)
+    except IntegrityError:
+        return err(EXCLUSIVO)
     return JsonResponse({"ok": True, "aviso": _avisar_aceptacion(request, Reserva.objects.get(pk=pk))})
 
 
@@ -334,7 +391,9 @@ def reserva_vista(request, pk):
 @panel
 @require_POST
 def reserva_eliminar(request, pk):
-    get_object_or_404(Reserva, pk=pk).delete()   # la reseña asociada se elimina en cascada
+    r = get_object_or_404(Reserva, pk=pk)
+    r.delete()   # la reseña asociada se elimina en cascada
+    seguridad.info("Reserva #%s eliminada por %s", pk, request.user.username)
     return JsonResponse({"ok": True})
 
 
@@ -344,6 +403,101 @@ def reserva_resena(request, pk):
     """Envía (o reenvía) al huésped la invitación a dejar su reseña."""
     ok, msg = servicios.enviar_invitacion(correos.url_base(request), get_object_or_404(Reserva, pk=pk))
     return JsonResponse({"ok": True, "aviso": msg}) if ok else err(msg)
+
+
+# ---------- Trazabilidad de reservas (H16): quién la modificó, datos originales y restaurarlos ----------
+# Datos de la reserva que se copian antes del PRIMER cambio y que se pueden restaurar (en este orden se muestran).
+CAMPOS_ORIGINALES = {"cliente_id": "RUT/DNI", "nombre": "Nombre", "apellido": "Apellido", "correo": "Correo", "telefono": "Teléfono",
+                     "fecha_entrada": "Fecha de entrada", "fecha_salida": "Fecha de salida", "cant_adultos": "Adultos",
+                     "cant_ninos": "Niños", "monto": "Valor de la estadía", "estado_reserva": "Estado de la reserva",
+                     "estado_pago": "Estado del pago", "notas": "Notas internas"}
+
+
+def nombres_admin(ids):
+    """{id: nombre} de los usuarios del panel (nombre y apellido, o el usuario si no tiene nombre). Una sola consulta."""
+    ids = {i for i in ids if i}
+    if not ids: return {}
+    nombres = {pk: (f"{n} {a}".strip() or u) for pk, n, a, u in
+               get_user_model().objects.filter(pk__in=ids).values_list("pk", "first_name", "last_name", "username")}
+    return {i: nombres.get(i, f"ADM-{i:03d} (usuario eliminado)") for i in ids}
+
+
+def _foto_de(d):
+    """Datos en formato JSON (fechas como texto aaaa-mm-dd) para guardarlos o compararlos."""
+    foto = {c: d[c] for c in CAMPOS_ORIGINALES}
+    foto["fecha_entrada"], foto["fecha_salida"] = str(foto["fecha_entrada"]), str(foto["fecha_salida"])
+    foto["cant_ninos"] = foto["cant_ninos"] or 0
+    return foto
+
+
+def _foto(r):
+    return _foto_de({c: getattr(r, c) for c in CAMPOS_ORIGINALES})
+
+
+def _marcar_cambio(request, r):
+    """Columnas que se guardan con cada cambio: quién y cuándo. La primera vez también se copian los datos originales
+    (después nunca se pisan, para que siempre se puedan ver y restaurar)."""
+    traza = {"admin_id": request.user.pk, "fecha_modificacion": timezone.now()}
+    if r.datos_originales is None: traza["datos_originales"] = _foto(r)
+    return traza
+
+
+def _mostrar(campo, valor):
+    """Valor con el formato que ve la administradora (fechas dd/mm/aaaa, pesos, estados con mayúscula)."""
+    if campo in ("fecha_entrada", "fecha_salida"):
+        try: return fd(date.fromisoformat(str(valor)))
+        except ValueError: return str(valor)
+    if campo == "monto": return clp(int(valor)) if valor else "Por definir"
+    if campo in ("estado_reserva", "estado_pago"): return str(valor).capitalize()
+    if campo == "notas": return valor or "(sin notas)"
+    return str(valor)
+
+
+@panel
+@require_GET
+def reserva_originales(request, pk):
+    """Datos originales (antes del primer cambio) junto a los actuales, para compararlos en la ventana de la reserva."""
+    r = get_object_or_404(Reserva, pk=pk)
+    if not r.datos_originales:
+        return JsonResponse({"ok": True, "modificada": False, "filas": [],
+                             "aviso": "Esta reserva no ha sido modificada: sus datos actuales son los originales."})
+    actual = _foto(r)
+    filas = [{"dato": nombre, "original": _mostrar(c, r.datos_originales.get(c, "")), "actual": _mostrar(c, actual[c]),
+              "cambio": str(r.datos_originales.get(c, "")) != str(actual[c])} for c, nombre in CAMPOS_ORIGINALES.items()]
+    return JsonResponse({"ok": True, "modificada": True, "filas": filas, "cambios": sum(f["cambio"] for f in filas),
+                         "por": nombres_admin([r.admin_id]).get(r.admin_id, "—"),
+                         "fecha": timezone.localtime(r.fecha_modificacion).strftime("%d/%m/%Y %H:%M") if r.fecha_modificacion else ""})
+
+
+@panel
+@require_POST
+def reserva_restaurar(request, pk):
+    """Vuelve a poner en la reserva los datos que tenía antes del primer cambio (la administradora lo confirma antes)."""
+    r = get_object_or_404(Reserva, pk=pk)
+    o = r.datos_originales
+    if not o: return err("Esta reserva no ha sido modificada: no hay datos originales que restaurar.")
+    if _foto(r) == _foto_de(o):
+        return JsonResponse({"ok": True, "aviso": f"La reserva #{r.id} ya tiene sus datos originales: no había nada que restaurar."})
+    try:
+        e, s = date.fromisoformat(o["fecha_entrada"]), date.fromisoformat(o["fecha_salida"])
+    except (KeyError, ValueError):
+        return err("Los datos originales guardados están incompletos: no se pueden restaurar.")
+    if o.get("estado_reserva") == "aceptada" and aceptadas().filter(fecha_entrada__lt=s, fecha_salida__gt=e).exclude(pk=r.pk).exists():
+        return err("No se puede restaurar: originalmente la reserva estaba ACEPTADA y ahora hay otra reserva aceptada en esas fechas "
+                   "(el servicio es exclusivo para un grupo a la vez). Cambia o cancela la otra reserva primero.")
+    datos = {c: o[c] for c in CAMPOS_ORIGINALES if c in o}
+    datos["fecha_entrada"], datos["fecha_salida"] = e, s
+    aviso = f"Listo: la reserva #{r.id} volvió a sus datos originales."
+    if not Cliente.objects.filter(pk=datos.get("cliente_id")).exists():
+        datos.pop("cliente_id", None)          # el RUT/DNI original ya no existe (se corrigió en Clientes): se mantiene el actual
+        aviso += " El RUT/DNI se mantuvo porque el cliente original ya no existe."
+    try:
+        with transaction.atomic():
+            Reserva.objects.filter(pk=pk).update(**datos, vista=True, admin_id=request.user.pk, fecha_modificacion=timezone.now())
+    except IntegrityError:
+        return err(EXCLUSIVO)
+    seguridad.info("Reserva #%s restaurada a sus datos originales por %s", pk, request.user.username)
+    return JsonResponse({"ok": True, "aviso": aviso})
 
 
 # ---------- Clientes ----------
@@ -372,6 +526,7 @@ def cliente_editar(request, pk):
 def cliente_eliminar(request, pk):
     if Reserva.objects.filter(cliente_id=pk).exists(): return err("No se puede eliminar: el cliente tiene reservas.")
     get_object_or_404(Cliente, pk=pk).delete()
+    seguridad.info("Cliente %s eliminado por %s", pk, request.user.username)
     return JsonResponse({"ok": True})
 
 

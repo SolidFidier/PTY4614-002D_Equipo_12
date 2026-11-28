@@ -1,4 +1,4 @@
-"""Pruebas de rendimiento (R1 a R11) de la hoja «Rendimiento» del Plan de pruebas.
+"""Pruebas de rendimiento (R1 a R12) de la hoja «Rendimiento» del Plan de pruebas.
 
 Los tiempos se miden en el servidor (sin red) y dependen del equipo donde se ejecutan.
 """
@@ -9,6 +9,7 @@ from django.conf import settings
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
 from panel.models import Cliente, Reserva
 
@@ -137,3 +138,26 @@ class Rendimiento(Base):
             self.assertEqual(cantidades[nombre], 1, f"{nombre} consultó la configuración {cantidades[nombre]} veces")
         self.obt("Leer los datos de contacto editables agrega una sola consulta SQL (por clave primaria, tabla de 4 filas) en cada página: "
                  + ", ".join(f"{k} {v}" for k, v in cantidades.items()) + ".")
+
+    def test_R12_lista_con_ultimo_cambio_con_volumen(self):
+        self.muchas_reservas(N)
+        with CaptureQueriesContext(connection) as sin_cambios:
+            self.adm.get(reverse("panel:reservas"))
+        ana, _ = self.admin2()
+        luis, _ = self.admin2("luis", "Luis", "Mora")
+        admins = [self.admin.id, ana.id, luis.id]
+        ahora = timezone.now()
+        for i, r in enumerate(Reserva.objects.only("id")):
+            Reserva.objects.filter(pk=r.pk).update(admin_id=admins[i % 3], fecha_modificacion=ahora,
+                                                   datos_originales={"monto": 0, "estado_reserva": "pendiente"})
+        with CaptureQueriesContext(connection) as con_cambios:
+            r, t = medir(lambda: self.adm.get(reverse("panel:reservas")))
+        self.assertEqual(r.status_code, 200)
+        q1, q2 = len(sin_cambios.captured_queries), len(con_cambios.captured_queries)
+        self.assertLessEqual(q2, q1 + 1, f"Mostrar quién modificó cada reserva agregó {q2 - q1} consultas")
+        self.assertLess(t, MAX_PANEL)
+        primera = Reserva.objects.order_by("id").first()
+        _, t2 = medir(lambda: self.adm.get(reverse("panel:reserva_originales", args=[primera.id])))
+        self.assertLess(t2, MAX_API)
+        self.obt(f"Con {N} reservas modificadas por 3 administradores, la lista mostró la columna «Último cambio» en {ms(t)} con {q2} consultas SQL "
+                 f"({q2 - q1} más que sin cambios: los nombres se buscan en una sola consulta) y «Ver datos originales» respondió en {ms(t2)}.")

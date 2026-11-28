@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -36,6 +37,7 @@ class Base(TestCase):
     def setUp(self):
         self.notas = []
         self.obtenido = ""
+        cache.clear()   # los intentos fallidos de ingreso al panel se cuentan en la caché: cada prueba parte de cero
         # El inicio del panel lanza un hilo que envía invitaciones de reseña; en pruebas se desactiva.
         p = mock.patch("panel.servicios.revisar_resenas_en_segundo_plano")
         p.start()
@@ -98,7 +100,8 @@ class Base(TestCase):
     # ---------- acciones ----------
     def ingresar(self, c=None, rut=RUT, correo=CORREO, extranjero=False, **extra):
         c = c or self.client
-        datos = {"nombre": "Juan", "apellido": "Pérez", "correo": correo, "rut": rut, "telefono": "56912345678", **extra}
+        datos = {"nombre": "Juan", "apellido": "Pérez", "correo": correo, "rut": rut, "telefono": "56912345678",
+                 "acepto_privacidad": "on", **extra}
         if extranjero:
             datos["extranjero"] = "on"
         return c.post(reverse("login_cliente"), datos)
@@ -111,6 +114,17 @@ class Base(TestCase):
         frm = resp.context["form"]
         return (" ".join(str(x) for x in frm.non_field_errors()) + " " +
                 " ".join(f"{k}: {' '.join(v)}" for k, v in frm.errors.items() if k != "__all__")).strip()
+
+    def admin2(self, usuario="ana", nombre="Ana", apellido="Soto"):
+        """Segundo administrador con su propia sesión (para ver quién hizo cada cambio)."""
+        u = get_user_model().objects.create_user(usuario, f"{usuario}@pirque.cl", CLAVE, is_staff=True, first_name=nombre, last_name=apellido)
+        c = Client()
+        c.force_login(u)
+        return u, c
+
+    def editar(self, r, c=None, **cambios):
+        """Guarda la ventana «Ver / Editar» de la reserva r con los cambios indicados. Devuelve la respuesta JSON."""
+        return (c or self.adm).post(reverse("panel:reserva_editar", args=[r.id]), self.form_panel(r, **cambios)).json()
 
     def form_panel(self, r=None, **cambios):
         datos = dict(nombre="Juan", apellido="Pérez", documento=RUT, nacionalidad="Chileno", telefono="56912345678",
